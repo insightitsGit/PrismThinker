@@ -1,18 +1,25 @@
 from __future__ import annotations
 
 from prismthinker import PrismThinker
-from prismthinker.adapters.chorusgraph import to_chorusgraph
+from prismthinker.adapters.chorusgraph import (
+    ChorusGraphOrchestrateRequest,
+    honor_envelope,
+    to_chorusgraph,
+)
 from prismthinker.adapters.documents import RetrievedDocument, from_documents, from_langchain, from_llamaindex
 from prismthinker.adapters.vectorprism import VectorPrismDocument, from_vectorprism
 from prismthinker.config import EngineConfig
 from prismthinker.core.evidence import detect_evidence_conflicts
 from prismthinker.core.schemas import (
     ChorusGraphDirective,
+    DeonticModality,
     EvidenceConflictType,
     FactSpec,
     FactType,
+    PolicyRule,
     ReasoningContext,
     ReasoningDisposition,
+    RuleSeverity,
     Verdict,
 )
 from prismthinker.reason_codes import REASON_SELECTOR_OVERLAY
@@ -35,6 +42,58 @@ def test_review_promotes_execute_to_escalate() -> None:
     envelope = to_chorusgraph(graph, allowed_tools=["ship"])
     assert envelope.directive is ChorusGraphDirective.ESCALATE
     assert envelope.allowed_tools == []
+
+
+def test_conflict_strips_chorusgraph_tools() -> None:
+    ctx = cache_ttl_context()
+    ctx.policy_rules[0] = PolicyRule(
+        id="pii-cache",
+        modality=DeonticModality.PROHIBITION,
+        predicate="fact.contains_pii == true and fact.cache_ttl >= 30",
+        severity=RuleSeverity.BLOCK,
+        text="block not veto",
+    )
+    graph = PrismThinker().evaluate(ctx)
+    envelope = to_chorusgraph(graph, allowed_tools=["apply_ttl", "ship"])
+    assert envelope.allowed_tools == []
+    assert envelope.directive in {
+        ChorusGraphDirective.ESCALATE,
+        ChorusGraphDirective.GATHER,
+        ChorusGraphDirective.REFUSE,
+    }
+    if graph.disposition is ReasoningDisposition.CONFLICT:
+        assert envelope.directive is ChorusGraphDirective.ESCALATE
+        assert graph.recommended_verdict is None
+
+
+def test_triad_from_vectorprism_evaluate_to_chorusgraph_blocks_tools() -> None:
+    extra = cache_ttl_context()
+    ctx = from_vectorprism(
+        extra.query,
+        [
+            VectorPrismDocument(
+                id="vp-1",
+                text="Live scrape: cache_ttl of 60 seconds while contains_pii is true.",
+                source="policy.privacy",
+                score=0.88,
+                metadata={"trust": 0.95, "numeric_claims": {"cache_ttl": 60}},
+            )
+        ],
+        extra=extra,
+    )
+    assert ctx.evidence[0].numeric_claims["cache_ttl"] == 60.0
+    assert ctx.policy_rules[0].severity is RuleSeverity.HARD_VETO
+    graph = PrismThinker().evaluate(ctx)
+    assert graph.disposition is ReasoningDisposition.HARD_VETO
+    envelope = to_chorusgraph(graph, allowed_tools=["apply_ttl", "delete_cache"])
+    assert envelope.directive is ChorusGraphDirective.REFUSE
+    assert envelope.allowed_tools == []
+    response, _ = honor_envelope(
+        ChorusGraphOrchestrateRequest(envelope=envelope, requested_tools=["apply_ttl"]),
+        "triad-1",
+    )
+    assert response.executed_tools == []
+    assert response.blocked_reason is not None
 
 
 def test_from_documents_lifts_structured_bindings() -> None:

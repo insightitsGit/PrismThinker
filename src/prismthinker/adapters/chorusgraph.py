@@ -1,3 +1,15 @@
+"""ChorusGraph orchestration egress.
+
+Maps a PrismThinker `DecisionGraph` into a directive envelope the workflow
+runtime must honor before tools or tokens run. This is the only supported join
+from PrismThinker to ChorusGraph. `evaluate()` never imports ChorusGraph.
+
+HARD_VETO → REFUSE, tools [].
+CONFLICT (Δ_max > τ) → ESCALATE, tools [].
+INSUFFICIENT_EVIDENCE → GATHER, tools [].
+EXECUTE is the only directive that may keep the caller allowlist.
+"""
+
 from __future__ import annotations
 
 from typing import List

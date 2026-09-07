@@ -1,14 +1,14 @@
-# Research handoff: PrismThinker does not need VectorPrism
+# Research handoff: compose in the stack, decouple at the package
 
-**Status:** adopted (2026-09-06) — product-boundary collision, not an engine bug  
-**Date:** 2026-09-06  
+**Status:** adopted (2026-09-07) — triad composition, not a fused monolith  
+**Date:** 2026-09-07  
 **Repo:** https://github.com/insightitsGit/PrismThinker  
 **Related:** [VectorPrism](https://github.com/insightitsGit/VectorPrism), [ChorusGraph](https://github.com/insightitsGit/ChorusGraph)  
 **Contract:** [`architecture-specification-v1.1.md`](./architecture-specification-v1.1.md) — frozen, schema `1.1.0`
 
-The friction was a **suite trap**: because the same author designed VectorPrism (index), PrismThinker (epistemic reasoning), and ChorusGraph (orchestration), it looked like they must depend on each other at runtime. They must not.
+The three products **do** belong in one macro application pipeline. They **must not** share a Python package or import each other from `core/`.
 
-**Decision:** treat them as independent libraries (Unix rule). PrismThinker sells as a drop-in auditor on any existing retriever + agent stack. No full-stack migration.
+**Decision:** Unix rule. Compose ChorusGraph → VectorPrism → PrismThinker → ChorusGraph at the application boundary. Join only through `from_vectorprism()` and `to_chorusgraph()`. PrismThinker still evaluates a hand-built `ReasoningContext` with no retriever and no orchestrator.
 
 ---
 
@@ -16,8 +16,8 @@ The friction was a **suite trap**: because the same author designed VectorPrism 
 
 | Question | Verdict | What shipped |
 |---|---|---|
-| 1. Stop naming VectorPrism/ChorusGraph as topology deps? | **Yes.** Spec §1 / §5 call them reference implementations. | Freeze correction 7 in v1.1 (still schema `1.1.0`) |
-| 2. Rename `VectorPrismDocument` → `RetrievedDocument`? | **Yes.** `adapters/documents.py`; `from_documents()`, `from_langchain()`, `from_llamaindex()`. | Legacy names remain as aliases |
+| 1. Name VectorPrism/ChorusGraph as fused runtime deps? | **No.** Spec §1 shows the macro stack; joins are adapters only. | Freeze correction 7; `engine.py` still imports neither |
+| 2. Rename `VectorPrismDocument` → `RetrievedDocument`? | **Yes.** `adapters/documents.py` is the generic mapper. | `from_vectorprism()` is the typed VectorPrism join, not a core import |
 | 3. Move HTTP clients out of the core package? | **Keep in `adapters/`.** Harmless DTOs. `engine.py` must never import them. | `test_engine_does_not_import_adapters` |
 | 4. Rename `bench/services/vectorprism.py`? | **Yes → `mock_retriever.py`.** | Docker service `mock_retriever` |
 | 5. Who types the hypothesis? | **The caller / orchestrating agent.** Retriever finds text only. | Documented in spec §5.1 |
@@ -30,7 +30,7 @@ What did **not** change: `evaluate()` surface, lattice, schema `1.1.0`, pydantic
 
 ## 1. The issue in one sentence
 
-**PrismThinker evaluates a typed `ReasoningContext`. VectorPrism is an optional document-shaped *ingress example*, not an input to `evaluate()` and not a package dependency.**
+**PrismThinker evaluates a typed `ReasoningContext`. VectorPrism is the sensory neighbor (optional). ChorusGraph is the orchestration neighbor (optional). Neither is an input type to `evaluate()`, and neither is a package dependency of `core/`.**
 
 You do not import VectorPrism. You do not call VectorPrism inside the lattice. You can (and should) run PrismThinker with a hand-built context: hypothesis + facts + rules + evidence.
 
@@ -88,7 +88,7 @@ The spec also says retrieval rank **must not** enter evaluators as a preference 
 
 ### B. Adapter in this repo (generic documents, VectorPrism aliases)
 
-`src/prismthinker/adapters/documents.py` is the canonical mapper. `adapters/vectorprism.py` re-exports old names.
+`src/prismthinker/adapters/documents.py` is the generic mapper. `adapters/vectorprism.py` is the typed VectorPrism join (`from_vectorprism()`). `adapters/chorusgraph.py` is the typed ChorusGraph join (`to_chorusgraph()`).
 
 - `RetrievedDocument` — local pydantic model (id, text, source, score, metadata)
 - `from_documents(...)` — maps those docs into `ReasoningContext`
@@ -189,7 +189,7 @@ Spend time here, in this order:
 2. `src/prismthinker/core/engine.py` — `evaluate()`; confirm no adapter import
 3. `src/prismthinker/core/schemas.py` — `ReasoningContext`, `Hypothesis`, `DecisionGraph`
 4. Spec §1 topology vs §5 neighbor contracts (notice: adapter, not engine)
-5. `src/prismthinker/adapters/documents.py` — generic mapping (`vectorprism.py` is aliases only)
+5. `src/prismthinker/adapters/vectorprism.py` / `chorusgraph.py` — typed joins; `documents.py` is the generic mapper
 6. `tests/test_end_to_end.py` / `tests/test_invariants.py` — engine tests with **hand-built** context
 7. `bench/runner.py` — the one place retrieve is wired (optional path)
 
@@ -199,7 +199,7 @@ Skip until you need the neighbor story: `bench/store.py`, Qdrant, Docker, Vector
 
 ## 9. Working hypothesis for the research
 
-Treat the three repos as **three contracts**, not one mixed service:
+Treat the three repos as **three contracts in one pipeline**, not one mixed service:
 
 | Product | Owns | Must not own |
 |---|---|---|
@@ -207,7 +207,9 @@ Treat the three repos as **three contracts**, not one mixed service:
 | **PrismThinker** | typed hypothesis, independent heads, \(\Delta\), disposition, `DecisionGraph` | search index, tool runtime |
 | ChorusGraph | graph runtime, tools, tokens, honor/refuse | averaging head verdicts |
 
-The bug in the current narrative is using VectorPrism as the **default mental model of an input**, so it feels like you must mix them to have a complete system. A complete PrismThinker run is a complete `ReasoningContext`. Retrieval is one way to fill `evidence[]`. It is not part of thinking.
+They **are** used together in the macro stack: VectorPrism feeds PrismThinker; PrismThinker protects ChorusGraph (`HARD_VETO` / \(\Delta_{\max} > \tau\) → tools `[]`). They **are not** one package. Updating VectorPrism's encoder must not touch PrismThinker `core/`. Deploying PrismThinker on JSON records must not require VectorPrism.
+
+A complete PrismThinker run is a complete `ReasoningContext`. Retrieval is one way to fill `evidence[]`. It is not part of thinking.
 
 ---
 
@@ -225,11 +227,12 @@ Adapter rename and docs are done. Still forbidden:
 
 ## 11. Bottom line
 
-The suite trap is closed in naming and adapters. The engine was already clean.
+Compose in the application. Decouple at the package.
 
 - **Need VectorPrism to use PrismThinker?** No.
 - **Need VectorPrism inside the lattice?** No, and it would be a freeze violation.
+- **Need ChorusGraph inside `evaluate()`?** No. `to_chorusgraph()` is egress only.
 - **Need a retriever at all?** Only if the caller has no other way to populate evidence/facts.
-- **Sales motion:** keep Pinecone / Qdrant / LangGraph; add `evaluate(ReasoningContext)` as the auditor.
+- **Macro stack:** VectorPrism finds the evidence, PrismThinker tests the logic, ChorusGraph runs the workflow.
 
-Three contracts, not one mixed service.
+Three contracts, one pipeline.

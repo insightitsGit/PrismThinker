@@ -47,7 +47,7 @@ Applied before lock, from review. Not a v1.2.
 4. **`EvaluatorPair`** sorts in a `mode="before"` validator. No in-place mutation of a constructed model.
 5. **Predicate parser** is recursive descent or a restricted `ast.parse` visitor. Regex parsing is forbidden.
 6. **Pool isolation.** Heads share read-only context. No scratchpad writes onto `ReasoningContext` or `Hypothesis`.
-7. **Neighbor names are reference implementations.** Ingress is any document-shaped producer (`RetrievedDocument` / `from_documents`). `from_vectorprism()` is the typed VectorPrism join (text, trust, `numeric_claims`, `negates_id`). Egress is any orchestrator that honors the envelope. `vectorprism` and `chorusgraph` MAY appear as examples. They MUST NOT be imported by `engine.py`. Chunking, dense embedding, and ANN indexing are VectorPrism (or another retriever), never `core/`.
+7. **Neighbor names are reference implementations.** The macro stack MAY compose ChorusGraph → VectorPrism → PrismThinker → ChorusGraph. The package boundary MUST stay decoupled: `engine.py` MUST NOT import `vectorprism`, `chorusgraph`, torch, or an ANN client. `from_vectorprism()` is the typed VectorPrism join (text, trust, `numeric_claims`, `negates_id`). `to_chorusgraph()` is the typed ChorusGraph join (`HARD_VETO`/`CONFLICT`/`INSUFFICIENT_EVIDENCE` → tools `[]`). Chunking, dense embedding, and ANN indexing are VectorPrism (or another retriever), never `core/`. Tool execution is ChorusGraph (or another orchestrator), never `core/`.
 8. **Pool copies and crash messages.** Each `ThreadPoolExecutor` worker receives `model_copy(deep=True)` of `ReasoningContext` and `Hypothesis`. `EvaluatorError.message` is a single-line `"{ExcType}: {exc}"`; full tracebacks are logged on `prismthinker`, never placed on the graph.
 
 ---
@@ -56,9 +56,28 @@ Applied before lock, from review. Not a v1.2.
 
 `prismthinker` is a standalone evaluation library. It does **not** require a retriever or an orchestrator at runtime.
 
-Callers build a `ReasoningContext` however they want — a vector database, Elasticsearch, SQL, a policy registry, or a test fixture. Optional adapters map common document shapes into that context. Optional egress maps a `DecisionGraph` into a directive envelope that **any** orchestrator MUST honor before tools or tokens run. [VectorPrism](https://github.com/insightitsGit/VectorPrism) and [ChorusGraph](https://github.com/insightitsGit/ChorusGraph) are **reference neighbors**, not dependencies.
+In the **macro application stack** the three products compose. At the **package boundary** they stay decoupled. [VectorPrism](https://github.com/insightitsGit/VectorPrism) finds evidence. PrismThinker tests the logic. [ChorusGraph](https://github.com/insightitsGit/ChorusGraph) runs the workflow. Joins are adapters only (`from_vectorprism()`, `to_chorusgraph()`). Callers MAY instead build a `ReasoningContext` from SQL, a policy registry, or a test fixture, and MAY honor the egress envelope in LangGraph, CrewAI, or a custom runtime.
 
 A `HARD_VETO` is a refuse, not a suggestion. `evaluate()` MUST NOT retrieve, index, or call tools.
+
+```
+[ User request / autonomous task ]
+        │
+        ▼
+ChorusGraph                 orchestration & candidate tool calls
+        │
+        ▼
+VectorPrism                 rhetorical/causal chunks, PSM 1024d
+        │  from_vectorprism()     # adapter; not imported by engine.py
+        ▼
+PrismThinker.evaluate       ReasoningContext → DecisionGraph
+        │  to_chorusgraph()       # adapter; not imported by engine.py
+        ▼
+ChorusGraph                 EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
+                            REFUSE / ESCALATE / GATHER ⇒ allowed_tools = []
+```
+
+Internal evaluate() topology:
 
 ```
                     [ optional ingress adapter ]
@@ -693,7 +712,7 @@ class ChorusGraphEnvelope(BaseModel):
 | `CONSENSUS` / `QUALIFIED_CONSENSUS` + `CAUTION` | `ESCALATE` | `[]` |
 | `review_required` and directive would be `EXECUTE` | promoted to `ESCALATE` | `[]` |
 
-The orchestrator (reference: ChorusGraph, or any runtime that consumes this envelope) MUST NOT generate tool calls on `REFUSE`, `ESCALATE`, or `GATHER`. That is part of this contract, not a courtesy.
+`to_chorusgraph()` is the only supported mapping from a `DecisionGraph` into a ChorusGraph directive envelope. The orchestrator (reference: ChorusGraph, or any runtime that consumes this envelope) MUST NOT generate tool calls on `REFUSE`, `ESCALATE`, or `GATHER`. `HARD_VETO` → `REFUSE`. `CONFLICT` (\(\Delta_{\max} > \tau\), default \(\tau_{\text{base}}=0.40\)) → `ESCALATE`. Both strip `allowed_tools` to `[]`. That is how PrismThinker protects ChorusGraph without importing it.
 
 ---
 

@@ -10,24 +10,27 @@ ReasoningContext  →  PrismThinker.evaluate  →  DecisionGraph
 
 It scores one typed hypothesis across independent heads, **keeps conflict instead of averaging it**, and emits a graph any orchestrator can honor **before** tokens are generated or tools run.
 
-It does **not** require [VectorPrism](https://github.com/insightitsGit/VectorPrism), [ChorusGraph](https://github.com/insightitsGit/ChorusGraph), Pinecone, LangChain, or any other neighbor at runtime. Those are optional adapters or reference implementations. Keep your vector DB and your agent framework; add PrismThinker as the deterministic verification layer.
+It does **not** import [VectorPrism](https://github.com/insightitsGit/VectorPrism) or [ChorusGraph](https://github.com/insightitsGit/ChorusGraph). In the **macro application stack** they compose; at the **package boundary** they stay decoupled. Joins are typed adapters only: `from_vectorprism()` in, `to_chorusgraph()` out. `evaluate()` still runs on a hand-built JSON `ReasoningContext` with no retriever and no orchestrator.
 
 Implementation contract: [`docs/architecture-specification-v1.1.md`](docs/architecture-specification-v1.1.md) — **v1.1 FROZEN**, schema `1.1.0`.
 
 ```text
-any evidence source (Pinecone, Qdrant, SQL, fixture, VectorPrism, ...)
-        → ReasoningContext + Hypothesis     # you build this
-                    │
-                    ▼
-               PrismThinker                 # pydantic-only evaluate()
-                    │
-                    ▼
-               DecisionGraph
-                    │
-                    ▼
-optional egress envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
-        → any orchestrator (ChorusGraph, LangGraph, CrewAI, custom, ...)
+[ User request / autonomous task ]
+        │
+        ▼
+1. ChorusGraph          orchestration & candidate tool calls
+        │ needs evidence
+        ▼
+2. VectorPrism          rhetorical/causal chunks, PSM 1024d, reject funny neighbors
+        │ from_vectorprism()     ← package join, not a core import
+        ▼
+3. PrismThinker         typed ReasoningContext → Δ, U, lattice → DecisionGraph
+        │ to_chorusgraph()       ← package join, not a core import
+        ▼
+4. ChorusGraph          EXECUTE runs the allowlist; REFUSE / ESCALATE / GATHER → tools []
 ```
+
+VectorPrism finds high-signal evidence. PrismThinker tests the logic. ChorusGraph runs the workflow — and only if the envelope says `EXECUTE`.
 
 **Python 3.11+** · **pydantic 2** · no LLM required on the v1.1 path · no ANN / vector-DB client on the evaluate path · no PyTorch on the default install
 
@@ -37,11 +40,11 @@ optional egress envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
 
 ## Critical: PrismThinker is the measurement layer — not a chat model
 
-| Layer | Who owns it | Runtime dependency of PrismThinker? |
-|---|---|---|
-| Split / encode / ANN | **Caller’s retriever** (Pinecone, Qdrant, Weaviate, pgvector, VectorPrism, …) | **No** |
-| Typed hypothesis + lattice | **PrismThinker** | This package |
-| Tools / tokens / graph runtime | **Caller’s orchestrator** (LangGraph, CrewAI, ChorusGraph, …) | **No** |
+| Layer | Product | Owns | Must not own |
+|---|---|---|---|
+| Orchestration | **ChorusGraph** (or LangGraph / CrewAI / …) | workflow, candidate tools, honor/refuse | averaging head verdicts |
+| Sensory retrieve | **VectorPrism** (or Pinecone / Qdrant / SQL / fixture) | chunk, encode, ANN | lattice, veto, tools |
+| Verification | **PrismThinker** | typed hypothesis, heads, \(\Delta\), \(U\), `DecisionGraph` | search index, tool runtime |
 
 Unix rule: each product does one thing, talks through typed contracts, and never assumes the others are present.
 
@@ -53,7 +56,7 @@ facts + rules + hypothesis + optional evidence
         → DecisionGraph
 ```
 
-Optional helpers (not used by `engine.py`): `from_vectorprism` (typed VectorPrism join), `from_documents`, `from_langchain`, `from_llamaindex`.
+Optional helpers (not used by `engine.py`): `from_vectorprism` (VectorPrism join), `to_chorusgraph` (ChorusGraph join), `from_documents`, `from_langchain`, `from_llamaindex`. You can swap either neighbor without touching `core/`.
 
 **Not supported (will look like “PrismThinker didn’t help”)**
 
@@ -117,7 +120,7 @@ Optional orchestrator mapping (`to_chorusgraph`, same rules for any runtime):
 | Consensus / qualified + `CAUTION` | `ESCALATE` | `[]` |
 | `review_required` would have been `EXECUTE` | `ESCALATE` | `[]` |
 
-A `HARD_VETO` is a refuse, not a suggestion.
+A `HARD_VETO` is a refuse, not a suggestion. ChorusGraph (or any orchestrator) MUST strip the tool allowlist to `[]` on `REFUSE`, `ESCALATE`, and `GATHER`. Severe contradiction (\(\Delta_{\max} > \tau_{\text{base}}\), default `0.40`) is `CONFLICT` → `ESCALATE` → tools `[]`. That is how PrismThinker protects the workflow runtime without importing it.
 
 ---
 
@@ -347,7 +350,7 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **101 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+Current suite: **103 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
@@ -362,7 +365,7 @@ Current suite: **101 tests** (`tests/`, `pythonpath` includes `src` and repo roo
 | `test_counterfactual.py` | Only mutable specs; original facts unchanged; budget cap | Probes mutate production state |
 | `test_thresholds.py` | Prior is the center; off switch; polar never widens; clip bounds; determinism | Dynamic \(\tau\) became a second lattice |
 | `test_isolation.py` | Hung worker is terminated; isolated formal returns a result | Timeout cannot kill a head |
-| `test_adapters.py` | `REFUSE` empty tools; review demotes `EXECUTE`; `from_vectorprism` trust / numeric_claims / `negates_id` | Orchestrator could still call tools, or VectorPrism inversions skipped the conflict pass |
+| `test_adapters.py` | `REFUSE` empty tools; conflict strips tools; triad `from_vectorprism` → evaluate → `to_chorusgraph` blocks execution | Orchestrator could still call tools, or VectorPrism inversions skipped the conflict pass |
 | `test_chunks.py` | Bench ingest stamps `numeric_claims` + source trust; cosine is not trust; empirical can fire | Bare RAG text starved the lattice |
 | `test_encode_index.py` | Bench hashed n-gram is unit; `EvidenceIndex` retrieves policy chunks; seed hypothesis kept | Bench stand-in drifted |
 | `test_wire_and_bench.py` | Freshness mapping; local hybrid retrieval; **all `gold.contract` scenarios** | Neighbor wire or contract gold drifted |
@@ -480,7 +483,7 @@ Latency budgets (priors, not SLOs we have measured in prod): fast-path ≪ 1 ms;
 
 - Not an LLM product. No NL→policy, no streaming dialectic.
 - Not SMT. Formal is typed facts + recursive-descent predicates.
-- Not a retriever and not an orchestrator. `evaluate()` never imports `adapters/`. VectorPrism owns chunk/embed/ANN. Optional DTOs and `bench/` hashed n-gram are stand-ins.
+- Not a retriever and not an orchestrator. The triad composes in the application stack; `evaluate()` never imports `adapters/`, `vectorprism`, or `chorusgraph`. Optional DTOs and `bench/` hashed n-gram are stand-ins.
 - Not activation steering. `experimental/latent` must not be imported by `engine.py` (`test_engine_does_not_import_latent`, `test_engine_does_not_import_torch`). `torch` is `.[latent]` only.
 - Not a radar UI. `EpistemicRadarPayload` is data.
 

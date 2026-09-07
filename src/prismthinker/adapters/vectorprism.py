@@ -1,8 +1,10 @@
 """VectorPrism sensory ingress.
 
 Maps VectorPrism document payloads into PrismThinker `ReasoningContext`.
-This is the only supported join between the two products. `evaluate()` never
-imports VectorPrism, torch, or an ANN client.
+This is the only supported join from VectorPrism into PrismThinker.
+`evaluate()` never imports VectorPrism, torch, or an ANN client.
+
+VectorPrism finds evidence (chunk / PSM 1024d / ANN). PrismThinker does not.
 
 Mapping:
 - text → EvidenceItem.content
