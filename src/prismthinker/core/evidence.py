@@ -112,7 +112,7 @@ def detect_evidence_conflicts(
                         detail="stale vs newer item on same source",
                     )
                 )
-            if left.metadata.get("negates_id") == right.id or right.metadata.get("negates_id") == left.id:
+            if right.id in _negation_targets(left) or left.id in _negation_targets(right):
                 conflicts.append(
                     EvidenceConflict(
                         left_id=left.id,
@@ -124,3 +124,23 @@ def detect_evidence_conflicts(
                     )
                 )
     return conflicts
+
+
+def _negation_targets(item) -> set[str]:
+    values = []
+    if "negates_id" in item.metadata:
+        values.append(item.metadata["negates_id"])
+    if "negates_ids" in item.metadata:
+        values.append(item.metadata["negates_ids"])
+    out: set[str] = set()
+    for raw in values:
+        if raw is None:
+            continue
+        if isinstance(raw, str):
+            if raw:
+                out.add(raw)
+        elif isinstance(raw, (list, tuple, set)):
+            out.update(str(value) for value in raw if value)
+        else:
+            out.add(str(raw))
+    return out

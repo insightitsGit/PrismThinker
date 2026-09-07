@@ -53,7 +53,7 @@ facts + rules + hypothesis + optional evidence
         → DecisionGraph
 ```
 
-Optional helpers (not used by `engine.py`): `from_documents`, `from_langchain`, `from_llamaindex`. Legacy names `from_vectorprism` / `VectorPrismDocument` are aliases.
+Optional helpers (not used by `engine.py`): `from_vectorprism` (typed VectorPrism join), `from_documents`, `from_langchain`, `from_llamaindex`.
 
 **Not supported (will look like “PrismThinker didn’t help”)**
 
@@ -278,7 +278,37 @@ ctx = from_llamaindex(query, li_nodes, extra=seed_context)
 ctx = from_documents(query, [RetrievedDocument(id="d1", text="...", source="wiki")], extra=seed_context)
 ```
 
-`from_documents` maps `text → evidence`. `metadata.trust` wins; retrieval `score` is a **fallback only** (topical, not authoritative). It may lift `policy_rule` / `causal_graph` from chunk metadata for tests — production rules belong in a policy registry passed as `extra=` or `policy_rules`. Rank is not a preference signal.
+**Boundary:** [VectorPrism](https://github.com/insightitsGit/VectorPrism) is the sensory layer (rhetorical/causal cuts, PSM 1024d, HNSW + intent rescore). PrismThinker is the executive layer (`ReasoningContext` → lattice). They join only through `from_vectorprism()`. PrismThinker does not chunk, dense-embed, or keep an ANN index.
+
+```python
+from prismthinker import PrismThinker
+from prismthinker.adapters.vectorprism import VectorPrismDocument, from_vectorprism
+
+ctx = from_vectorprism(
+    query,
+    [
+        VectorPrismDocument(
+            id="chunk-1",
+            text="cache_ttl of 10 seconds",
+            source="policy.privacy",
+            score=0.81,  # topical fallback only
+            metadata={
+                "trust": 0.95,
+                "numeric_claims": {"cache_ttl": 10},
+                "negates_id": "chunk-0",  # upstream factual inversion
+            },
+        )
+    ],
+    extra=seed_with_hypothesis_and_rules,
+)
+graph = PrismThinker().evaluate(ctx)
+```
+
+Mapping: `text → EvidenceItem.content`; `metadata.trust` else clipped `score → trust`; `metadata.numeric_claims` lifted as typed numbers (heads do not parse prose); `metadata.negates_id` / `negates_ids` feed the evidence-conflict pass (`EXPLICIT_NEGATION`) before the epistemic pool.
+
+`from_documents` / LangChain / LlamaIndex helpers use the same mapping. Production `PolicyRule` / `CausalGraph` belong in a registry on `extra=` or the caller, not in ANN chunks. Rank is not a preference signal.
+
+Local hashed n-gram retrieve (`bench/chunks.py`, `bench/encode.py`, `bench/index.py`) is a **bench stand-in** so tests can run without VectorPrism. It is not the product encoder.
 
 ---
 
@@ -317,7 +347,7 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **91 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+Current suite: **101 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
@@ -332,7 +362,9 @@ Current suite: **91 tests** (`tests/`, `pythonpath` includes `src` and repo root
 | `test_counterfactual.py` | Only mutable specs; original facts unchanged; budget cap | Probes mutate production state |
 | `test_thresholds.py` | Prior is the center; off switch; polar never widens; clip bounds; determinism | Dynamic \(\tau\) became a second lattice |
 | `test_isolation.py` | Hung worker is terminated; isolated formal returns a result | Timeout cannot kill a head |
-| `test_adapters.py` | `REFUSE` empty tools; review demotes `EXECUTE`; `from_documents` / LangChain / LlamaIndex | Orchestrator could still call tools |
+| `test_adapters.py` | `REFUSE` empty tools; review demotes `EXECUTE`; `from_vectorprism` trust / numeric_claims / `negates_id` | Orchestrator could still call tools, or VectorPrism inversions skipped the conflict pass |
+| `test_chunks.py` | Bench ingest stamps `numeric_claims` + source trust; cosine is not trust; empirical can fire | Bare RAG text starved the lattice |
+| `test_encode_index.py` | Bench hashed n-gram is unit; `EvidenceIndex` retrieves policy chunks; seed hypothesis kept | Bench stand-in drifted |
 | `test_wire_and_bench.py` | Freshness mapping; local hybrid retrieval; **all `gold.contract` scenarios** | Neighbor wire or contract gold drifted |
 | `test_justice_story.py` | Oresteia retrieve→evaluate: private killing `REFUSE`; court is not `REFUSE`; no screenplay | Averaged revenge into a ship, or ingested copyrighted text |
 | `test_end_to_end.py` | Worked PII-cache example; `config_hash`; byte-stable fields | The spec’s §20 example is dead |
@@ -448,7 +480,7 @@ Latency budgets (priors, not SLOs we have measured in prod): fast-path ≪ 1 ms;
 
 - Not an LLM product. No NL→policy, no streaming dialectic.
 - Not SMT. Formal is typed facts + recursive-descent predicates.
-- Not a retriever and not an orchestrator. `evaluate()` never imports `adapters/`. Optional DTOs and `bench/services/mock_retriever.py` are stand-ins.
+- Not a retriever and not an orchestrator. `evaluate()` never imports `adapters/`. VectorPrism owns chunk/embed/ANN. Optional DTOs and `bench/` hashed n-gram are stand-ins.
 - Not activation steering. `experimental/latent` must not be imported by `engine.py` (`test_engine_does_not_import_latent`, `test_engine_does_not_import_torch`). `torch` is `.[latent]` only.
 - Not a radar UI. `EpistemicRadarPayload` is data.
 
@@ -465,11 +497,11 @@ src/prismthinker/
   core/          engine, lattice, Δ, U, thresholds, isolation
   evaluators/    formal, policy, empirical, causal, utility
   classifier/    AST fast-path + feature regime
-  adapters/      optional documents ingress, chorusgraph egress, HTTP clients
-                 (engine.py must not import this tree)
+  adapters/      from_vectorprism / from_documents ingress, chorusgraph egress,
+                 HTTP clients (engine.py must not import this tree)
 docs/            architecture-specification-v1.1.md (contract)
 tests/           invariants first
-bench/           corpus, scenarios, runner, Docker neighbor services, justice demo
+bench/           corpus, scenarios, hashed-ngram stand-in index, Docker neighbors, justice demo
 docker-compose.yml
 ```
 

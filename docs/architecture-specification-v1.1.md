@@ -47,7 +47,7 @@ Applied before lock, from review. Not a v1.2.
 4. **`EvaluatorPair`** sorts in a `mode="before"` validator. No in-place mutation of a constructed model.
 5. **Predicate parser** is recursive descent or a restricted `ast.parse` visitor. Regex parsing is forbidden.
 6. **Pool isolation.** Heads share read-only context. No scratchpad writes onto `ReasoningContext` or `Hypothesis`.
-7. **Neighbor names are reference implementations.** Ingress is any document-shaped producer (`RetrievedDocument` / `from_documents`). Egress is any orchestrator that honors the envelope. `vectorprism` and `chorusgraph` MAY appear as examples. They MUST NOT be imported by `engine.py`. Legacy names `VectorPrismDocument` / `from_vectorprism` are aliases.
+7. **Neighbor names are reference implementations.** Ingress is any document-shaped producer (`RetrievedDocument` / `from_documents`). `from_vectorprism()` is the typed VectorPrism join (text, trust, `numeric_claims`, `negates_id`). Egress is any orchestrator that honors the envelope. `vectorprism` and `chorusgraph` MAY appear as examples. They MUST NOT be imported by `engine.py`. Chunking, dense embedding, and ANN indexing are VectorPrism (or another retriever), never `core/`.
 8. **Pool copies and crash messages.** Each `ThreadPoolExecutor` worker receives `model_copy(deep=True)` of `ReasoningContext` and `Hypothesis`. `EvaluatorError.message` is a single-line `"{ExcType}: {exc}"`; full tracebacks are logged on `prismthinker`, never placed on the graph.
 
 ---
@@ -185,7 +185,7 @@ prismthinker/
 │       ├── adapters/                 # optional; never imported by engine.py
 │       │   ├── __init__.py
 │       │   ├── documents.py          # RetrievedDocument + from_documents / langchain / llamaindex
-│       │   ├── vectorprism.py        # compatibility aliases
+│       │   ├── vectorprism.py        # from_vectorprism() typed join (text, trust, claims, negates_id)
 │       │   ├── chorusgraph.py        # Egress envelope (reference orchestrator)
 │       │   └── clients.py            # optional HTTP; not on evaluate()
 │       └── experimental/
@@ -193,6 +193,10 @@ prismthinker/
 │               ├── __init__.py
 │               ├── projections.py
 │               └── steering.py
+├── bench/                            # not on the evaluate() path
+│   ├── chunks.py                     # hashed-ngram stand-in windows (not VectorPrism PSM)
+│   ├── encode.py                     # 384-d hasher; production encoding is VectorPrism 1024d
+│   └── index.py                      # in-process EvidenceIndex for local tests only
 └── tests/
     ├── conftest.py
     ├── test_invariants.py
@@ -631,7 +635,7 @@ Neighbors are **optional**. `PrismThinker.evaluate(ReasoningContext)` is complet
 
 ### 5.1 Ingress adapter (e.g. document store / VectorPrism)
 
-Canonical types: `RetrievedDocument`, `from_documents()`. LangChain / LlamaIndex helpers are duck-typed and add no extra package dependency. `VectorPrismDocument` / `from_vectorprism` are aliases.
+Canonical types: `RetrievedDocument`, `from_documents()`. LangChain / LlamaIndex helpers are duck-typed and add no extra package dependency. `from_vectorprism()` is the VectorPrism join: it calls `from_documents()` and is the only supported mapping from VectorPrism payloads into `ReasoningContext`. `VectorPrismDocument` is an alias of `RetrievedDocument`.
 
 ```python
 class RetrievedDocument(BaseModel):
@@ -660,10 +664,12 @@ Mapping rules:
 - `content = text`
 - `trust = metadata.trust` when well-typed; otherwise `clip(score, 0, 1)` as a **fallback only**. Retrieval rank / cosine similarity is topical relevance, not truth or authority.
 - `provenance_hash = sha256(id + source + text)`
-- `numeric_claims` copied from `metadata.numeric_claims` if well-typed; otherwise empty
+- `numeric_claims` copied from `metadata.numeric_claims` if well-typed; otherwise empty. Evaluators consume these numbers; they MUST NOT parse free-form prose for the same values.
+- `metadata.negates_id` / `metadata.negates_ids` are preserved on `EvidenceItem.metadata` so the evidence-conflict pass can emit `EXPLICIT_NEGATION` before heads run.
 - Retrieval rank/score MUST NOT enter evaluators as a preference signal.
 - Lifting `policy_rule` / `causal_graph` from chunk metadata is optional convenience. Production `PolicyRule` and `CausalGraph` belong in a policy registry / system config passed by the caller, not in ANN chunks.
 - The **caller** (or orchestrating agent) types the `Hypothesis`. A retriever finds text; it does not know what action is being decided.
+- **VectorPrism (or another retriever) owns chunk / encode / ANN.** PrismThinker does not cut documents, generate dense embeddings, or maintain indices. Local hashed n-gram retrieve lives in `bench/` as a stand-in. Bare token windows with no claims starve empirical/policy and correctly `GATHER`. `engine.py` MUST NOT import encode, index, chunks, VectorPrism, torch, or an ANN client.
 
 ### 5.2 Egress directive (e.g. orchestrator / ChorusGraph)
 

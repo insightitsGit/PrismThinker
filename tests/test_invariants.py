@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import ast
 import inspect
+from pathlib import Path
 
 import pytest
 
@@ -271,6 +273,48 @@ def test_engine_does_not_import_torch() -> None:
     assert "torch" not in source
     assert "import numpy" not in source
     assert "import scipy" not in source
+
+
+def test_core_never_imports_forbidden_runtime_deps() -> None:
+    core_root = Path(__file__).resolve().parents[1] / "src" / "prismthinker" / "core"
+    forbidden_roots = (
+        "torch",
+        "vectorprism",
+        "chorusgraph",
+        "qdrant",
+        "qdrant_client",
+        "faiss",
+        "pinecone",
+        "numpy",
+        "scipy",
+        "prismthinker.adapters",
+        "prismthinker.experimental",
+    )
+
+    def banned(name: str) -> bool:
+        return any(name == root or name.startswith(root + ".") for root in forbidden_roots)
+
+    for path in core_root.rglob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        imported: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imported.add(node.module)
+        hits = sorted(name for name in imported if banned(name))
+        assert not hits, f"{path.name} imported {hits}"
+
+
+def test_production_modules_do_not_import_latent() -> None:
+    root = Path(__file__).resolve().parents[1] / "src" / "prismthinker"
+    skip = root / "experimental"
+    for path in root.rglob("*.py"):
+        if skip in path.parents or path.parent == skip:
+            continue
+        source = path.read_text(encoding="utf-8")
+        assert "experimental.latent" not in source
+        assert "prismthinker.experimental" not in source
 
 
 def test_thread_pool_workers_receive_deep_copies() -> None:

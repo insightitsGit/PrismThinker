@@ -5,21 +5,7 @@ import uuid
 from typing import Protocol
 
 from prismthinker.adapters.documents import RetrievedDocument
-
-from bench.encode import DIM, _TOKEN, cosine, embed
-
-
-def _lexical(query: str, text: str) -> float:
-    qtoks = set(_TOKEN.findall(query.lower()))
-    dtoks = set(_TOKEN.findall(text.lower()))
-    if not qtoks:
-        return 0.0
-    return len(qtoks & dtoks) / len(qtoks)
-
-
-def _hybrid(query: str, doc: RetrievedDocument, cosine_score: float) -> float:
-    lexical = _lexical(query, f"{doc.id} {doc.source} {doc.text}")
-    return max(0.0, min(1.0, 0.55 * cosine_score + 0.45 * lexical))
+from bench.encode import DIM, cosine, embed, hybrid_rank
 
 
 class RetrievalStore(Protocol):
@@ -46,7 +32,7 @@ class MemoryStore:
         query_vec = embed(query)
         ranked: list[tuple[float, RetrievedDocument]] = []
         for doc, vector in self._docs.get(collection, []):
-            score = _hybrid(query, doc, cosine(query_vec, vector))
+            score = hybrid_rank(query, f"{doc.id} {doc.source} {doc.text}", cosine(query_vec, vector))
             ranked.append((score, doc))
         ranked.sort(key=lambda item: item[0], reverse=True)
         hits = [
@@ -124,7 +110,7 @@ class QdrantStore:
             payload["score"] = 0.0
             documents.append(RetrievedDocument.model_validate(payload))
         reranked = [
-            doc.model_copy(update={"score": _hybrid(query, doc, float(hit.score))})
+            doc.model_copy(update={"score": hybrid_rank(query, f"{doc.id} {doc.source} {doc.text}", float(hit.score))})
             for doc, hit in zip(documents, hits)
         ]
         reranked.sort(key=lambda item: item.score, reverse=True)

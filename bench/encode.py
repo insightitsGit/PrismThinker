@@ -1,3 +1,9 @@
+"""Deterministic hashed n-gram encoder for the neighbor bench only.
+
+Production encoding is VectorPrism (PSM 1024d). This 384-d hasher is a
+stand-in so local tests can retrieve without downloading weights.
+"""
+
 from __future__ import annotations
 
 import hashlib
@@ -7,11 +13,8 @@ import re
 DIM = 384
 _TOKEN = re.compile(r"[a-z0-9_]+")
 
-__all__ = ["DIM", "embed", "cosine", "_TOKEN"]
-
 
 def embed(text: str) -> list[float]:
-    """Deterministic hashed n-gram encoder. Cosine-ready, no downloaded weights."""
     vec = [0.0] * DIM
     lowered = text.lower()
     tokens = _TOKEN.findall(lowered)
@@ -28,6 +31,19 @@ def embed(text: str) -> list[float]:
 
 def cosine(left: list[float], right: list[float]) -> float:
     return float(sum(a * b for a, b in zip(left, right)))
+
+
+def lexical_overlap(query: str, text: str) -> float:
+    qtoks = set(_TOKEN.findall(query.lower()))
+    dtoks = set(_TOKEN.findall(text.lower()))
+    if not qtoks:
+        return 0.0
+    return len(qtoks & dtoks) / len(qtoks)
+
+
+def hybrid_rank(query: str, blob: str, cosine_score: float) -> float:
+    lexical = lexical_overlap(query, blob)
+    return max(0.0, min(1.0, 0.55 * cosine_score + 0.45 * lexical))
 
 
 def _accumulate(vec: list[float], key: str, weight: float) -> None:

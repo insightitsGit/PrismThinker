@@ -4,8 +4,11 @@ from prismthinker import PrismThinker
 from prismthinker.adapters.chorusgraph import to_chorusgraph
 from prismthinker.adapters.documents import RetrievedDocument, from_documents, from_langchain, from_llamaindex
 from prismthinker.adapters.vectorprism import VectorPrismDocument, from_vectorprism
+from prismthinker.config import EngineConfig
+from prismthinker.core.evidence import detect_evidence_conflicts
 from prismthinker.core.schemas import (
     ChorusGraphDirective,
+    EvidenceConflictType,
     FactSpec,
     FactType,
     ReasoningContext,
@@ -143,6 +146,55 @@ def test_vectorprism_names_are_aliases() -> None:
         [VectorPrismDocument(id="d1", text="hello", source="idx", score=0.5)],
     )
     assert ctx.evidence[0].id == "d1"
+
+
+def test_from_vectorprism_maps_trust_numeric_claims_and_negates_id() -> None:
+    ctx = from_vectorprism(
+        "did the retrieval invert a claim",
+        [
+            VectorPrismDocument(
+                id="a",
+                text="latency is 10ms",
+                source="vectorprism",
+                score=0.91,
+                metadata={"numeric_claims": {"latency_ms": 10}},
+            ),
+            VectorPrismDocument(
+                id="b",
+                text="latency is not 10ms",
+                source="vectorprism",
+                score=0.40,
+                metadata={
+                    "trust": 0.22,
+                    "numeric_claims": {"latency_ms": 40},
+                    "negates_id": "a",
+                },
+            ),
+            VectorPrismDocument(
+                id="c",
+                text="third observation also inverts a",
+                source="vectorprism",
+                score=0.3,
+                metadata={"negates_ids": ["a"]},
+            ),
+        ],
+    )
+    by_id = {item.id: item for item in ctx.evidence}
+    assert by_id["a"].content == "latency is 10ms"
+    assert by_id["a"].trust == 0.91
+    assert by_id["a"].numeric_claims["latency_ms"] == 10.0
+    assert by_id["b"].trust == 0.22
+    assert by_id["b"].numeric_claims["latency_ms"] == 40.0
+    assert by_id["b"].metadata["negates_id"] == "a"
+    assert by_id["c"].metadata["negates_ids"] == ["a"]
+    conflicts = detect_evidence_conflicts(ctx, EngineConfig())
+    negation = {
+        frozenset({c.left_id, c.right_id})
+        for c in conflicts
+        if c.conflict_type is EvidenceConflictType.EXPLICIT_NEGATION
+    }
+    assert frozenset({"a", "b"}) in negation
+    assert frozenset({"a", "c"}) in negation
 
 
 def test_gather_fact_keys_from_missing_required() -> None:

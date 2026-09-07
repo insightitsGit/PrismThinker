@@ -114,7 +114,8 @@ def from_documents(
                         "constraint",
                         "causal_graph",
                     }
-                },
+                }
+                | _negation_fields(doc.metadata),
             )
         )
 
@@ -252,6 +253,16 @@ def llamaindex_document(item: Any) -> RetrievedDocument:
         score=score,
         metadata=metadata,
     )
+
+
+def _negation_fields(metadata: Mapping[str, Any]) -> dict[str, Any]:
+    """Keep VectorPrism inversion flags for the evidence-conflict pass."""
+    out: dict[str, Any] = {}
+    if "negates_id" in metadata:
+        out["negates_id"] = metadata["negates_id"]
+    if "negates_ids" in metadata:
+        out["negates_ids"] = metadata["negates_ids"]
+    return out
 
 
 def _trust_for(doc: RetrievedDocument) -> float:
