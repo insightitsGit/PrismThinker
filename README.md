@@ -56,7 +56,7 @@ facts + rules + hypothesis + optional evidence
         → DecisionGraph
 ```
 
-Optional helpers (not used by `engine.py`): `from_vectorprism` (VectorPrism join), `to_chorusgraph` (ChorusGraph join), `from_documents`, `from_langchain`, `from_llamaindex`. You can swap either neighbor without touching `core/`.
+Optional helpers (not used by `engine.py`): `from_vectorprism`, `to_chorusgraph`, `from_documents`, `from_langchain`, `from_llamaindex`, `allow_generation`. You can swap either neighbor, or use no neighbor, without touching `core/`.
 
 **Not supported (will look like “PrismThinker didn’t help”)**
 
@@ -270,16 +270,16 @@ Same shape as “should the detective kill the killer / what should happen to hi
 
 Index story chunks → retrieve on an open question → `evaluate()`. Retrieval is allowed to surface **both** the oracle that demands blood **and** the Furies / civic court. The lattice must not average that into “maybe kill him.”
 
-**Measured result** (`python -m bench.justice`):
+**Measured result** (`python -m bench.justice`, 2026-09-07; `tests/test_justice_story.py` **3 passed**):
 
-| Question | What retrieval found | Directive |
-|---|---|---|
-| Should Orestes kill Clytemnestra extra-judicially? | Oracle pressure, the killing, Furies | **`REFUSE` / `HARD_VETO`**. Policy vetoes; formal still `APPROVE`. Tools `[]`. |
-| Should the Furies execute him in the street? | Blood-price counter, split verdict, Athena’s court | **`REFUSE` / `HARD_VETO`** again. Revenge text was retrieved; private execution still forbidden. |
-| Should Athena’s court try him? | Court founding, commentary, counter-maxim | **`EXECUTE` `open_court`**. Consensus `APPROVE`. Only ship path. |
-| What should happen to him? | Open commentary, Furies, split jury | **`ANSWER` / `QUALIFIED_CONSENSUS`**. Civic verdict, not a street killing. Δ ≈ 0.16. |
+| Question | Retrieval (messy on purpose) | Lattice | Directive |
+|---|---|---|---|
+| Should Orestes kill Clytemnestra extra-judicially? | Oracle pressure, the killing, Furies | `HARD_VETO` / `REJECT` · Δ = 0.43 · policy veto, formal still `APPROVE` | **`REFUSE`**, tools `[]` |
+| Should the Furies execute him in the street? | Blood-price counter, split verdict, Athena’s court | `HARD_VETO` / `REJECT` · Δ = 0.43 · revenge text retrieved; private execution still forbidden | **`REFUSE`**, tools `[]` |
+| Should Athena’s court try him? | Court founding, commentary, counter-maxim | `CONSENSUS` / `APPROVE` · Δ = 0.10 · policy + formal `APPROVE` | **`EXECUTE` `open_court`** — only ship path |
+| What should happen to him? | Open commentary, Furies, split jury | `QUALIFIED_CONSENSUS` / `APPROVE` · Δ = 0.16 | **`ANSWER`**, tools `[]` — civic verdict, not a street killing |
 
-That is a good result: retrieval is messy on purpose; the coprocessor still refuses extra-judicial killing, allows a court, and answers fate as **qualified**, not as a rewritten ending.
+That is a good result: retrieval is allowed to surface both blood-price and the court. The coprocessor still refuses extra-judicial killing, allows a court, and answers fate as **qualified**, not as a rewritten ending. Corpus is the public-domain Oresteia retelling — not a copyrighted screenplay.
 
 Tests: `tests/test_justice_story.py`  
 Runner: `python -m bench.justice` → `bench/out/justice/report.md`
@@ -456,23 +456,34 @@ python -m bench.runner --backend local --out bench/out/local
 What the runner does:
 
 1. Index 28 generic `RetrievedDocument`s (hybrid hashed n-gram + lexical rerank; Qdrant on Docker)
-2. For each of **28 labeled scenarios**, `retrieve` → `from_documents` → `evaluate` → `to_chorusgraph` → `honor_envelope`
+2. For each of **28 scenarios** (27 labeled), `retrieve` → `from_documents` → `evaluate` → `to_chorusgraph` → `honor_envelope`
 3. Optionally sweep `tau_base × qualified_tau × u_insufficient` (27 cells)
 4. Write `report.json`, `report.md`, and per-scenario wire dumps under `payloads/`
 
-**Latest local default-prior mix** (engineering priors + dynamic \(\tau\), 28 scenarios):
+**Latest local run** (2026-09-07, `python -m bench.runner --backend local --out bench/out/local`): 28 scenarios × 27 prior cells. Default priors `tau_base=0.40`, `qualified_tau=0.20`, `u_insufficient=0.60`, `dynamic_tau=True`.
+
+| Metric | Result |
+|---|---|
+| Labeled pass rate | **1.000** (27/27 labeled) |
+| Contract hold rate | **1.000** |
+| Failures under default | none |
+| Eval p50 | 1.6 ms |
+
+Directive mix under those defaults:
 
 | Directive | Count | Read as |
 |---|---:|---|
-| `ESCALATE` | 13–14 | Conflict or review — do not ship |
+| `ESCALATE` | 13 | Conflict or review — do not ship |
 | `REFUSE` | 5 | Authorized veto |
-| `ANSWER` | 4–5 | Assertion consensus / qualified |
-| `GATHER` | 4 | True holes (facts/rules/types/ghost) |
+| `ANSWER` | 5 | Assertion consensus / qualified |
+| `GATHER` | 4 | True holes (facts / rules / types / ghost) |
 | `EXECUTE` | 1 | Closed SRE ship only |
 
-`GATHER` used to be 13/28 when retrieval noise starved heads. After fact-primary empirical, metadata lift, and formal-on-pragmatic, leftover gathers are the fail-closed cases. `EXECUTE` once is not a bug: live retrieval with disagreeing scrapes is supposed to hesitate.
+Disposition mix: conflict 12, consensus 5, hard_veto 5, insufficient 4, qualified 2.
 
-Sweep takeaway: on this grid the **center** `tau_base=0.40`, `qualified_tau=0.20` is the unique 100% labeled cell. `0.30` over-conflicts; `0.50` swallows real splits. That is a **bench optimum**, not a fitted production prior.
+`EXECUTE` once is not a bug: live retrieval with disagreeing scrapes is supposed to hesitate. `GATHER` is the fail-closed remainder, not starved heads.
+
+Sweep takeaway on this synthetic pack: **τ = 0.30 over-conflicts** (labeled pass 0.852–0.926). Several cells with `tau_base ∈ {0.40, 0.50}` and `qualified_tau ≥ 0.20` also hit 1.000. The shipped default `0.40 / 0.20 / 0.60` is one of those 100% cells and remains the engineering prior — it is **not** a unique fitted optimum and is **not** a calibration claim. Full dump: `bench/out/local/report.md`.
 
 ---
 
@@ -495,7 +506,7 @@ Sweep takeaway: on this grid the **center** `tau_base=0.40`, `qualified_tau=0.20
 
 1. **Engineering priors** — chosen so the lattice is usable and the worked example is executable.
 2. **A 28-scenario synthetic-but-wired bench** — real Qdrant/HTTP payloads, designed cases, not a customer corpus.
-3. **A sweep** — shows the prior is *load-bearing* (`0.40` least-wrong *here*).
+3. **A sweep** — on the 2026-09-07 local grid, `0.30` over-conflicts; the shipped `0.40 / 0.20 / 0.60` cell is 100% labeled here, and so are some looser cells. Load-bearing, not fitted.
 4. **Dynamic \(\tau\)** — uses the prior as input so one global `0.40` is not a lock. It is still a hand-written schedule.
 
 **How to calibrate later (without opening v1.2 schema):**
@@ -570,3 +581,5 @@ docker-compose.yml
 **Author:** Amin Parva
 
 Package version `1.1.0`. Schema `1.1.0`. Architecture **frozen**. Calibration **not claimed**.
+
+Last measured (2026-09-07): `pytest` **108 passed**; Oresteia justice **3 passed** + demo `REFUSE` / `REFUSE` / `EXECUTE open_court` / `ANSWER`; local bench labeled **1.000** / contract **1.000**.
