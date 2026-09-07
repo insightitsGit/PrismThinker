@@ -21,6 +21,8 @@ ChorusGraph envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
 
 **Python 3.11+** · **pydantic 2** · no LLM required on the v1.1 path
 
+**Author:** Amin Parva
+
 ---
 
 ## Critical: PrismThinker is the measurement layer — not a chat model
@@ -405,5 +407,7 @@ docker-compose.yml
 ---
 
 ## License / status
+
+**Author:** Amin Parva
 
 Package version `1.1.0`. Schema `1.1.0`. Architecture **frozen**. Calibration **not claimed**.
