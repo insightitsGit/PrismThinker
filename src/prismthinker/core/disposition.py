@@ -5,6 +5,7 @@ from collections import Counter
 from prismthinker.config import EngineConfig
 from prismthinker.core.thresholds import EffectiveThresholds, priors_only
 from prismthinker.core.schemas import (
+    Claim,
     EvaluatorCapability,
     EvaluatorError,
     EvaluatorResult,
@@ -86,19 +87,25 @@ def apply_uncited_penalty(
 
 
 def drop_mismatched_claims(results: dict[str, EvaluatorResult]) -> dict[str, EvaluatorResult]:
+    """Remove claims whose polarity is outside the head verdict band. Tag the head."""
     from prismthinker.core.schemas import polarity_matches_verdict
     from prismthinker.reason_codes import REASON_POLARITY_MISMATCH
 
     out: dict[str, EvaluatorResult] = {}
     for name, result in results.items():
+        kept: list[Claim] = []
         mismatched = False
         for claim in result.claims:
-            if not polarity_matches_verdict(claim.polarity, result.verdict):
+            if polarity_matches_verdict(claim.polarity, result.verdict):
+                kept.append(claim)
+            else:
                 mismatched = True
         codes = list(result.reason_codes)
         if mismatched:
             codes.append(REASON_POLARITY_MISMATCH)
-        out[name] = result.model_copy(update={"reason_codes": list(dict.fromkeys(codes))})
+        out[name] = result.model_copy(
+            update={"claims": kept, "reason_codes": list(dict.fromkeys(codes))}
+        )
     return out
 
 

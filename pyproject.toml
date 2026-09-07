@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,14 +7,46 @@ name = "prismthinker"
 version = "1.1.0"
 description = "Model-agnostic, disagreement-aware epistemic reasoning coprocessor."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Amin Parva", email = "parva.amin@yahoo.com" },
+]
 requires-python = ">=3.11"
+keywords = [
+    "epistemic",
+    "reasoning",
+    "governance",
+    "rag",
+    "decision-graph",
+    "policy",
+    "contradiction",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
 dependencies = [
     "pydantic>=2.6",
 ]
 
+[project.urls]
+Homepage = "https://github.com/insightitsGit/PrismThinker"
+Repository = "https://github.com/insightitsGit/PrismThinker"
+Issues = "https://github.com/insightitsGit/PrismThinker/issues"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "build>=1.2",
+    "twine>=5.0",
 ]
 bench = [
     "fastapi>=0.110",
@@ -28,6 +60,9 @@ latent = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+prismthinker = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

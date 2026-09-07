@@ -288,6 +288,14 @@ Runner: `python -m bench.justice` → `bench/out/justice/report.md`
 
 ## Install
 
+PyPI (pydantic-only runtime; no VectorPrism, ChorusGraph, torch, or ANN client):
+
+```bash
+pip install prismthinker
+```
+
+From a clone, for contributors:
+
 ```bash
 pip install -e ".[dev]"
 ```
@@ -295,13 +303,13 @@ pip install -e ".[dev]"
 Neighbor bench extras (optional HTTP mock retriever, FastAPI stand-ins, Qdrant — **not** VectorPrism):
 
 ```bash
-pip install -e ".[bench]"
+pip install "prismthinker[bench]"
 ```
 
 Research latent extra (`experimental/latent`, not imported by `engine.py`):
 
 ```bash
-pip install -e ".[latent]"   # pulls torch; never required for evaluate()
+pip install "prismthinker[latent]"   # pulls torch; never required for evaluate()
 ```
 
 ---
@@ -403,11 +411,11 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **108 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+Current suite: **109 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
-| `test_invariants.py` | Preference isolation, formal≠policy, veto capability, fail-closed LLM/selector/timeout, closed reason codes, citation sanitizer, no latent/torch/adapter import from engine, pool deep-copies, sanitized crashes | **Ship-blocker.** A pass here is the v1.1 constitution. |
+| `test_invariants.py` | Preference isolation, formal≠policy, veto capability, fail-closed LLM/selector/timeout, closed reason codes, citation sanitizer, polarity-mismatched claims dropped, no latent/torch/adapter import from engine, pool deep-copies, sanitized crashes | **Ship-blocker.** A pass here is the v1.1 constitution. |
 | `test_ast_safe.py` | Whitelist walker; no `eval`; mixed prose rejected; `2+2` envelope | Fast-path leaked into dialectic, or unsafe AST |
 | `test_classifier.py` | Regime features, overlays, force override, math-shaped ≠ fast-path | Wrong heads selected downstream |
 | `test_evaluators.py` | Each head happy/missing; no context mutation; assumptions; fact-primary empirical; SLA one-sided; n≥3 on distribution lexemes | A head is inventing signal or writing the context |
@@ -447,9 +455,10 @@ docker compose up -d --build          # Qdrant :6333, mock retriever :8081, mock
 python -m bench.runner --backend docker --out bench/out/docker
 ```
 
-No Docker:
+No Docker (install first so `src/` is on the path):
 
 ```bash
+pip install -e ".[bench]"
 python -m bench.runner --backend local --out bench/out/local
 ```
 
@@ -578,8 +587,9 @@ docker-compose.yml
 
 ## License / status
 
-**Author:** Amin Parva
+**Author:** Amin Parva  
+**License:** MIT (`LICENSE`)
 
 Package version `1.1.0`. Schema `1.1.0`. Architecture **frozen**. Calibration **not claimed**.
 
-Last measured (2026-09-07): `pytest` **108 passed**; Oresteia justice **3 passed** + demo `REFUSE` / `REFUSE` / `EXECUTE open_court` / `ANSWER`; local bench labeled **1.000** / contract **1.000**.
+Last measured (2026-09-07): `pytest` **109 passed**; Oresteia justice **3 passed** + demo `REFUSE` / `REFUSE` / `EXECUTE open_court` / `ANSWER`; local bench labeled **1.000** / contract **1.000**.

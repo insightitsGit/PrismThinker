@@ -180,7 +180,7 @@ def test_llm_enabled_fails_closed() -> None:
     assert REASON_LLM_INVALID in graph.review_reasons
 
 
-def test_mismatched_claims_are_kept_and_tagged() -> None:
+def test_mismatched_claims_are_dropped_and_tagged() -> None:
     seeded = result("formal", Verdict.APPROVE)
     seeded.claims = [
         Claim(
@@ -191,12 +191,21 @@ def test_mismatched_claims_are_kept_and_tagged() -> None:
             confidence=1.0,
             citations=[Citation(kind=CitationKind.HYPOTHESIS, ref="h")],
             hypothesis_id="h",
-        )
+        ),
+        Claim(
+            id="ok",
+            evaluator="formal",
+            statement="yes",
+            polarity=1.0,
+            confidence=1.0,
+            citations=[Citation(kind=CitationKind.HYPOTHESIS, ref="h")],
+            hypothesis_id="h",
+        ),
     ]
     out = drop_mismatched_claims({"formal": seeded})
-    assert out["formal"].claims
-    assert out["formal"].claims[0].id == "bad"
+    assert [claim.id for claim in out["formal"].claims] == ["ok"]
     assert REASON_POLARITY_MISMATCH in out["formal"].reason_codes
+    assert seeded.claims[0].id == "bad"
 
 
 def test_reason_code_set_is_closed() -> None:

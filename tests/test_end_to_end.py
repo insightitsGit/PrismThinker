@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from prismthinker import PrismThinker
+from prismthinker import PrismThinker, __version__
 from prismthinker.adapters.chorusgraph import to_chorusgraph
 from prismthinker.config import DEFAULT_CONFIG_HASH, EngineConfig, config_hash
 from prismthinker.core.schemas import ChorusGraphDirective, ReasoningDisposition, Verdict
 from tests.conftest import cache_ttl_context
+
+
+def test_package_version() -> None:
+    assert __version__ == "1.1.0"
 
 
 def test_worked_example_cache_ttl() -> None:

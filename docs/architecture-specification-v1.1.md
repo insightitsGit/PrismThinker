@@ -48,7 +48,10 @@ Applied before lock, from review. Not a v1.2.
 5. **Predicate parser** is recursive descent or a restricted `ast.parse` visitor. Regex parsing is forbidden.
 6. **Pool isolation.** Heads share read-only context. No scratchpad writes onto `ReasoningContext` or `Hypothesis`.
 7. **Neighbor names are reference implementations.** The macro stack MAY compose ChorusGraph → VectorPrism → PrismThinker → ChorusGraph. The package boundary MUST stay decoupled: `engine.py` MUST NOT import `vectorprism`, `chorusgraph`, torch, or an ANN client. `from_vectorprism()` is the typed VectorPrism join (text, trust, `numeric_claims`, `negates_id`). `to_chorusgraph()` is the typed ChorusGraph join (`HARD_VETO`/`CONFLICT`/`INSUFFICIENT_EVIDENCE` → tools `[]`). Chunking, dense embedding, and ANN indexing are VectorPrism (or another retriever), never `core/`. Tool execution is ChorusGraph (or another orchestrator), never `core/`.
-8. **Pool copies and crash messages.** Each `ThreadPoolExecutor` worker receives `model_copy(deep=True)` of `ReasoningContext` and `Hypothesis`. `EvaluatorError.message` is a single-line `"{ExcType}: {exc}"`; full tracebacks are logged on `prismthinker`, never placed on the graph.
+8. **Pool copies and crash messages.** Each worker — `ThreadPoolExecutor` **or** an isolated process — receives a deep copy / serialized copy of `ReasoningContext` and `Hypothesis`. `EvaluatorError.message` is a single-line `"{ExcType}: {exc}"`; full tracebacks are logged on `prismthinker`, never placed on the graph.
+9. **Polarity-mismatched claims are dropped.** `drop_mismatched_claims()` removes claims whose polarity is outside the head `verdict` band before \(\Delta\) runs, and tags the head `REASON_POLARITY_MISMATCH`. Matching claims are kept. The original result object is not mutated.
+10. **Effective \(\tau\).** `tau_base` / `qualified_tau` remain engineering priors. When `EngineConfig.dynamic_tau=True` (default), the runtime derives deterministic \(\tau_{\text{eff}}\) / \(\tau_{\text{qualified,eff}}\) from run-local conditions (§15.2). `dynamic_tau=False` restores the raw prior. The flags `dynamic_tau`, `isolate_heads`, and `stop_on_first_resolving` are hashed into `config_hash`.
+11. **Preferred production pool.** Standard heads run in isolated worker processes when `isolate_heads=True` (default). `ThreadPoolExecutor` remains supported when `isolate_heads=False` and for custom evaluators that cannot be pickled. Both modes preserve the same `EvaluatorResult` / `DecisionGraph` contract.
 
 ---
 
@@ -540,7 +543,7 @@ class EvaluatorResult(BaseModel):
 | reject | \(-1.0\) to \(-0.34\) |
 | undetermined | claims optional; if present, polarity ignored for \(\Delta\) |
 
-Inconsistent claims are dropped from \(\Delta\) and tagged `REASON_POLARITY_MISMATCH`.
+Inconsistent claims are **dropped from `EvaluatorResult.claims`** (and therefore from \(\Delta\)) and the head is tagged `REASON_POLARITY_MISMATCH`. Matching claims remain. `undetermined` heads do not drop claims on polarity.
 
 ### 4.8 Contradiction, probes, radar, graph
 
@@ -830,7 +833,7 @@ class Evaluator(ABC):
 
 Rules for every implementation:
 
-1. Receive the **same** `ReasoningContext` and `Hypothesis` object graph. Treat both as immutable. Heads MUST NOT assign attributes, mutate lists/dicts on the shared objects, or store scratchpad state on them. Local variables only. Required because the pool runs concurrently in a `ThreadPoolExecutor`.
+1. Receive `ReasoningContext` and `Hypothesis` as read-only. Treat both as immutable. Heads MUST NOT assign attributes, mutate lists/dicts on the shared objects, or store scratchpad state on them. Local variables only. Required because the pool runs concurrently (isolated processes by default; `ThreadPoolExecutor` when `isolate_heads=False`).
 2. Score `hypothesis` only. Do not invent a second action.
 3. If required inputs are missing, return `undetermined`, confidence `0.0`, and concrete `unresolved_questions`. Do not guess.
 4. LLM backends are opt-in via `EngineConfig.llm.enabled`. Temperature `0`, pinned `model_id`, cache key `sha256(model_id + schema_version + canonical(context, hypothesis, evaluator))`. LLM output is schema-validated; invalid JSON → `undetermined` + `REASON_LLM_INVALID`. LLM MAY NOT set `hard_veto`.
@@ -1112,7 +1115,7 @@ If there is no evidence and no required facts, `coverage` is 1.0 so empty closed
 
 ## 12. Phase 5 — Counterfactual Probes
 
-Run only when \(\Delta_{\max} > \tau_{\text{base}}\) and at least one `FactSpec.mutable` exists. Skip on fast-path.
+Run only when \(\Delta_{\max} > \tau_{\text{eff}}\) and at least one `FactSpec.mutable` exists. Skip on fast-path. \(\tau_{\text{eff}}=\tau_{\text{base}}\) when `dynamic_tau=False`.
 
 ### 12.1 Budget (`EngineConfig.counterfactual`)
 
@@ -1123,7 +1126,7 @@ Run only when \(\Delta_{\max} > \tau_{\text{base}}\) and at least one `FactSpec.
 | `max_params` | 4 (highest prior, see below) |
 | `stop_on_first_resolving` | false |
 
-A probe is **resolving** when re-evaluated \(\Delta_{\max} \le \tau_{\text{base}}\) and no authorized hard veto remains, **or** when it removes an authorized hard veto without creating a new one.
+A probe is **resolving** when re-evaluated \(\Delta_{\max} \le \tau_{\text{eff}}\) and no authorized hard veto remains, **or** when it removes an authorized hard veto without creating a new one. `EngineConfig.stop_on_first_resolving` (default `false`) stops the probe loop after the first resolving hit.
 
 `delta_after` is the value from a real re-run of active heads on a copied context. There is no predictive surrogate in v1.1. The v1.0 field `predicted_delta_after` is deleted.
 
@@ -1187,6 +1190,8 @@ First matching rule wins. This is arbitration by **priority**, not by averaging.
 
 Majority is a **count of heads**, not confidence-weighted. Confidence-weighting is a form of averaging and is forbidden.
 
+The numeric cells `0.40` and `0.20` in the table are the **priors** (`tau_base`, `qualified_tau`). Lattice comparisons at runtime use \(\tau_{\text{eff}}\) and \(\tau_{\text{qualified,eff}}\) from §15.2. When `dynamic_tau=False`, those equal the priors and the table is literal.
+
 ### 13.1 Review routing (not a disposition)
 
 `review_required` is true if any of:
@@ -1212,14 +1217,15 @@ Majority is a **count of heads**, not confidence-weighted. Confidence-weighting 
 4. If fast-path: assemble graph and return.
 5. Evidence conflict pass (§9).
 6. Select heads (§7).
-7. Run heads in parallel via `ThreadPoolExecutor`, each with `timeout_ms`. Pass a **deep copy** of `ReasoningContext` and `Hypothesis` to each worker (inner dicts/lists are mutable even when `extra="forbid"`). Heads MUST NOT write to those objects; copies make a race unobservable if they do. On timeout/crash, write `EvaluatorError` with a single-line `"{ExcType}: {exc}"` message (log the traceback on logger `prismthinker`; never put `traceback.format_exc()` on the graph) and a synthetic `undetermined` result.
+7. Run heads in parallel. **Preferred production path:** isolated worker processes for the default registry when `isolate_heads=True` (default). `ThreadPoolExecutor` is used when `isolate_heads=False` or a selected head cannot be isolated. Each worker receives a **deep copy** (threads) or a serialized copy (processes) of `ReasoningContext` and `Hypothesis`. Heads MUST NOT write to those objects. On timeout/crash, write `EvaluatorError` with a single-line `"{ExcType}: {exc}"` message (log the traceback on logger `prismthinker`; never put `traceback.format_exc()` on the graph) and a synthetic `undetermined` result. A hung isolated worker is terminated.
 8. Strip unauthorized vetoes.
 9. Apply uncited penalties.
-10. Compute \(\Delta\) and \(U\).
-11. Maybe probe counterfactuals.
-12. Apply disposition lattice.
-13. Build radar, timings, `config_hash`, `run_id` (UUIDv4).
-14. Return `DecisionGraph`.
+10. Drop polarity-mismatched claims (`REASON_POLARITY_MISMATCH`).
+11. Compute \(\Delta\) and \(U\). Derive \(\tau_{\text{eff}}\) (§15.2).
+12. Maybe probe counterfactuals.
+13. Apply disposition lattice using \(\tau_{\text{eff}}\).
+14. Build radar, timings (`tau_effective`, `tau_base`), `config_hash`, `run_id` (UUIDv4).
+15. Return `DecisionGraph`.
 
 Public API is synchronous. Callers that need async wrap it. No streaming partial graph in v1.1.
 
@@ -1250,14 +1256,53 @@ class EngineConfig(BaseModel):
     max_probes: int = 12
     max_probe_params: int = 4
     n_unresolved_cap: int = 10
-    llm_enabled: bool = False
+    llm: LLMConfig = LLMConfig(enabled=False)
+    isolate_heads: bool = True
+    dynamic_tau: bool = True
+    stop_on_first_resolving: bool = False
 ```
 
-`config_hash` hashes this object with sorted keys. Tests pin the default hash.
+`config_hash` is SHA-256 of the canonical JSON of this object (sorted keys), including `dynamic_tau`, `isolate_heads`, and `stop_on_first_resolving`. Tests pin “same constructor → same hash,” not a frozen hex.
 
 **Calibration status:** The default contradiction weights, \(\tau\) thresholds (`tau_base`, `qualified_tau`), uncertainty coefficients, and confidence constants are engineering priors for v1.1. They are not claimed to be empirically optimal or statistically calibrated. Production deployments MAY override them through versioned `EngineConfig`. Future benchmark results MAY produce domain-calibrated profiles without changing the `DecisionGraph` contract. Do not delay implementation to search for a universal \(\tau\).
 
-### 15.1 Latency
+### 15.2 Effective \(\tau\) (implementation amendment, still schema `1.1.0`)
+
+\(\tau_{\text{base}}\) remains an engineering prior. The lattice and counterfactual “resolving” comparisons use \(\tau_{\text{eff}}\).
+
+When `dynamic_tau=False`, \(\tau_{\text{eff}}=\tau_{\text{base}}\) and \(\tau_{\text{qualified,eff}}=\tau_{\text{qualified}}\).
+
+When `dynamic_tau=True` (default), the runtime derives a deterministic \(\tau_{\text{eff}}\) from run-local conditions. The adaptation is versioned with this document, bounded, and included in `config_hash`. It is not learned.
+
+Let \(D\) be the set of determined head verdicts. Let \(\text{polar}\) be true iff both `approve` and `reject` appear in \(D\). Let \(\text{severe}\) be true iff any evidence conflict has `severity ≥ 0.7`. Policy domains are `{legal, security, privacy, healthcare, finance}`.
+
+Additive shifts (applied in this order; `polar` and the regime shift are mutually exclusive):
+
+| Condition | Shift |
+|---|---|
+| `polar` | \(-0.06\) |
+| else closed_formal | \(-0.05\) |
+| else empirical | \(0\) |
+| else policy_normative | \(-0.03\) |
+| else pragmatic_systems | \(+0.03\) |
+| else open_dialectic | \(+0.06\) |
+| \(\lvert D\rvert \le 2\) | \(-0.04\) |
+| \(\lvert D\rvert \ge 4\) and not `polar` | \(+0.03\) |
+| `severe` and `polar` | \(-0.03\) |
+| \(U \ge 0.35\) | \(-0.03\) |
+| `domain` is a policy domain | \(-0.02\) |
+
+\[
+\tau_{\text{eff}}=\operatorname{clip}\bigl(\tau_{\text{base}}+\sum \text{shifts},\;0.22,\;0.58\bigr)
+\]
+
+\[
+\tau_{\text{qualified,eff}}=\operatorname{clip}\bigl(\tau_{\text{qualified}}\cdot\tfrac{\tau_{\text{eff}}}{\tau_{\text{base}}},\;0.08,\;\max(0.08,\;\tau_{\text{eff}}-0.05)\bigr)
+\]
+
+An approve-vs-reject split **tightens** \(\tau\) (never widens it to hide a split). Values are recorded on `DecisionGraph.timings_ms` as `tau_effective` and `tau_base`. `dynamic_tau=False` is the A/B control against the raw prior.
+
+### 15.3 Latency
 
 | Path | Budget |
 |---|---|
@@ -1371,7 +1416,7 @@ This is the behavior v1.0 described in prose and v1.1 makes executable.
 
 - Prefer `pydantic>=2` and Python 3.11+.
 - Predicate parser: recursive descent or restricted `ast.parse` visitor only. Same whitelist philosophy as the math walker. No `eval`, no regex grammar.
-- Parallelism: `concurrent.futures.ThreadPoolExecutor` is enough for CPU-light heads. Process isolation is not required in v1.1. Shared context is read-only; no per-thread writes onto the context object.
+- Parallelism: preferred production execution is isolated worker processes for standard heads (`isolate_heads=True`). `ThreadPoolExecutor` remains supported when `isolate_heads=False` and for custom evaluators that cannot be isolated. Both modes deep-copy / serialize context per head. Shared context is read-only; no per-thread writes onto the context object.
 - Do not implement LLM heads to “finish” v1.1. The optional contract exists so they cannot appear later as veto oracles.
 - Do not implement activation steering to satisfy directory layout completeness.
 - Do not open a v1.2 architecture pass until implementation or benchmarks falsify this document.
