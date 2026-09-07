@@ -17,6 +17,7 @@ from prismthinker.adapters.documents import (
     from_langchain,
     from_llamaindex,
 )
+from prismthinker.adapters.rag import allow_generation
 from prismthinker.adapters.vectorprism import (
     VectorPrismDocument,
     VectorPrismIndexRequest,
@@ -44,6 +45,7 @@ __all__ = [
     "VectorPrismIndexResponse",
     "VectorPrismRetrieveRequest",
     "VectorPrismRetrieveResponse",
+    "allow_generation",
     "from_documents",
     "from_langchain",
     "from_llamaindex",

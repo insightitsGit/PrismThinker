@@ -71,6 +71,106 @@ calling evaluate() and expecting it to retrieve or run tools
 
 ---
 
+## Two modes of operation
+
+### Mode 1 — Sovereign Prism stack
+
+[VectorPrism](https://github.com/insightitsGit/VectorPrism) + PrismThinker + [ChorusGraph](https://github.com/insightitsGit/ChorusGraph). VectorPrism cuts and indexes; `from_vectorprism()` types the evidence; PrismThinker measures \(\Delta\) and \(U\); `to_chorusgraph()` is the only path that may keep a tool allowlist (`EXECUTE`). Packages stay decoupled.
+
+### Mode 2 — Universal RAG plug-in
+
+Keep Pinecone, Weaviate, Qdrant, Chroma, pgvector, LangChain, or LlamaIndex. PrismThinker does not care how the text was retrieved. It is an **intermediate verification gate** between top-k chunks and the LLM (or tool call):
+
+```text
+[ User query ]
+      │
+      ▼
+[ Any retriever — cosine / hybrid / SQL ]
+      │  top-k documents
+      ▼
+ReasoningContext assembly   map docs → EvidenceItem; type Hypothesis + PolicyRule
+      │
+      ▼
+PrismThinker.evaluate       evidence conflict, heads, Δ, U, lattice
+      │
+      ├─ CONSENSUS / QUALIFIED_CONSENSUS → allow_generation: pass citations to the LLM
+      ├─ INSUFFICIENT_EVIDENCE           → GATHER: ask, do not invent
+      └─ CONFLICT / HARD_VETO            → halt; do not generate; surface the radar
+```
+
+The retriever still dumps chunks. The caller still owns the prompt. PrismThinker decides whether those chunks are safe to synthesize.
+
+```python
+from prismthinker import (
+    ActionKind,
+    CandidateAction,
+    EvidenceItem,
+    Hypothesis,
+    PolicyRule,
+    PrismThinker,
+    ReasoningContext,
+    ReasoningDisposition,
+    RuleSeverity,
+)
+from prismthinker.adapters.rag import allow_generation
+
+# 1. Standard RAG retrieval from any vector store
+# retrieved_docs = vector_store.similarity_search(query, k=4)
+
+evidence = [
+    EvidenceItem(
+        id=f"doc_{i}",
+        content=doc.page_content,
+        source=doc.metadata.get("source", "unknown"),
+        trust=float(doc.metadata.get("trust", doc.metadata.get("score", 0.5))),
+    )
+    for i, doc in enumerate(retrieved_docs)
+]
+
+context = ReasoningContext(
+    query=query,
+    hypothesis=Hypothesis(
+        id="hyp_1",
+        statement="Approve automated refund for disputed transaction.",
+        action=CandidateAction(
+            id="act_refund",
+            kind=ActionKind.TOOL_INVOCATION,
+            name="issue_refund",
+            payload={"amount": 750},
+        ),
+    ),
+    evidence=evidence,
+    policy_rules=[
+        PolicyRule(
+            id="rule_refund_cap",
+            modality="prohibition",
+            predicate="action.payload.amount > 500",
+            severity=RuleSeverity.HARD_VETO,
+            text="Automated refunds cannot exceed $500.",
+        )
+    ],
+)
+
+graph = PrismThinker().evaluate(context)
+
+if graph.disposition is ReasoningDisposition.HARD_VETO or not allow_generation(graph):
+    # Halt before the LLM hallucinates an approval
+    raise PermissionError(graph.recommended_rationale)
+
+# Safe to feed verified evidence into the prompt
+response = llm.generate(prompt=query, context=graph)
+```
+
+The caller types the `Hypothesis` (including `action.payload` the policy can bind). Retrieval rank is not authority: prefer `metadata.trust`; clipped `score` is a topical fallback. LangChain / LlamaIndex objects can skip the manual loop:
+
+```python
+from prismthinker.adapters.documents import from_langchain, from_llamaindex, from_documents
+
+ctx = from_langchain(query, lc_docs, extra=seed_with_hypothesis_and_rules)
+```
+
+---
+
 ## Why PrismThinker exists
 
 Retrieval returns neighbors. Orchestration wants a tool call. Neither measures **whether independent methods agree** on the same proposition.
@@ -232,54 +332,7 @@ assert envelope.directive.value == "refuse"
 assert envelope.allowed_tools == []
 ```
 
-Plug-and-play on an existing retriever (Pinecone, LangChain, SQL, fixture — same shape):
-
-```python
-from prismthinker import PrismThinker, ReasoningContext, ReasoningDisposition
-from prismthinker.core.schemas import (
-    ActionKind,
-    CandidateAction,
-    EvidenceItem,
-    Hypothesis,
-    PolicyRule,
-)
-
-# docs = pinecone.similarity_search(query)  # or any retriever
-# company_policy_rules: list[PolicyRule]     # policy registry, not chunk metadata
-
-context = ReasoningContext(
-    query=user_prompt,
-    hypothesis=Hypothesis(
-        id="hyp:proposed-tool",
-        statement="invoke the proposed tool",
-        action=CandidateAction(
-            id="act:proposed-tool",
-            kind=ActionKind.TOOL_INVOCATION,
-            name="proposed_tool_call",
-            payload={},
-        ),
-    ),
-    evidence=[
-        EvidenceItem(id=d.id, content=d.page_content, source=d.metadata["source"])
-        for d in docs
-    ],
-    policy_rules=company_policy_rules,
-)
-
-graph = PrismThinker().evaluate(context)
-if graph.disposition is ReasoningDisposition.HARD_VETO:
-    raise PermissionError(graph.recommended_rationale)
-```
-
-Helpers if you already have LangChain / LlamaIndex objects (no extra deps):
-
-```python
-from prismthinker.adapters.documents import from_documents, from_langchain, from_llamaindex, RetrievedDocument
-
-ctx = from_langchain(query, lc_docs, extra=seed_context)
-ctx = from_llamaindex(query, li_nodes, extra=seed_context)
-ctx = from_documents(query, [RetrievedDocument(id="d1", text="...", source="wiki")], extra=seed_context)
-```
+Plug-and-play on an existing retriever is **Mode 2** (see [Two modes of operation](#two-modes-of-operation)). Same `evaluate()` as the sovereign stack.
 
 **Boundary:** [VectorPrism](https://github.com/insightitsGit/VectorPrism) is the sensory layer (rhetorical/causal cuts, PSM 1024d, HNSW + intent rescore). PrismThinker is the executive layer (`ReasoningContext` → lattice). They join only through `from_vectorprism()`. PrismThinker does not chunk, dense-embed, or keep an ANN index.
 
@@ -350,7 +403,7 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **103 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+Current suite: **108 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
@@ -366,6 +419,7 @@ Current suite: **103 tests** (`tests/`, `pythonpath` includes `src` and repo roo
 | `test_thresholds.py` | Prior is the center; off switch; polar never widens; clip bounds; determinism | Dynamic \(\tau\) became a second lattice |
 | `test_isolation.py` | Hung worker is terminated; isolated formal returns a result | Timeout cannot kill a head |
 | `test_adapters.py` | `REFUSE` empty tools; conflict strips tools; triad `from_vectorprism` → evaluate → `to_chorusgraph` blocks execution | Orchestrator could still call tools, or VectorPrism inversions skipped the conflict pass |
+| `test_rag_plugin.py` | Public plug-in imports; LangChain-shaped hits; refund cap `HARD_VETO` blocks generation; under-cap does not veto | RAG drop-in could not halt before the LLM |
 | `test_chunks.py` | Bench ingest stamps `numeric_claims` + source trust; cosine is not trust; empirical can fire | Bare RAG text starved the lattice |
 | `test_encode_index.py` | Bench hashed n-gram is unit; `EvidenceIndex` retrieves policy chunks; seed hypothesis kept | Bench stand-in drifted |
 | `test_wire_and_bench.py` | Freshness mapping; local hybrid retrieval; **all `gold.contract` scenarios** | Neighbor wire or contract gold drifted |
@@ -483,7 +537,7 @@ Latency budgets (priors, not SLOs we have measured in prod): fast-path ≪ 1 ms;
 
 - Not an LLM product. No NL→policy, no streaming dialectic.
 - Not SMT. Formal is typed facts + recursive-descent predicates.
-- Not a retriever and not an orchestrator. The triad composes in the application stack; `evaluate()` never imports `adapters/`, `vectorprism`, or `chorusgraph`. Optional DTOs and `bench/` hashed n-gram are stand-ins.
+- Not a retriever and not an orchestrator. Mode 1 composes the triad; Mode 2 drops into any RAG pipeline. `evaluate()` never imports `adapters/`, `vectorprism`, or `chorusgraph`.
 - Not activation steering. `experimental/latent` must not be imported by `engine.py` (`test_engine_does_not_import_latent`, `test_engine_does_not_import_torch`). `torch` is `.[latent]` only.
 - Not a radar UI. `EpistemicRadarPayload` is data.
 
@@ -500,8 +554,9 @@ src/prismthinker/
   core/          engine, lattice, Δ, U, thresholds, isolation
   evaluators/    formal, policy, empirical, causal, utility
   classifier/    AST fast-path + feature regime
-  adapters/      from_vectorprism / from_documents ingress, chorusgraph egress,
-                 HTTP clients (engine.py must not import this tree)
+  adapters/      from_vectorprism / from_documents / from_langchain ingress,
+                 allow_generation RAG gate, chorusgraph egress, HTTP clients
+                 (engine.py must not import this tree)
 docs/            architecture-specification-v1.1.md (contract)
 tests/           invariants first
 bench/           corpus, scenarios, hashed-ngram stand-in index, Docker neighbors, justice demo

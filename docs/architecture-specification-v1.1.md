@@ -205,6 +205,7 @@ prismthinker/
 │       │   ├── __init__.py
 │       │   ├── documents.py          # RetrievedDocument + from_documents / langchain / llamaindex
 │       │   ├── vectorprism.py        # from_vectorprism() typed join (text, trust, claims, negates_id)
+│       │   ├── rag.py                # allow_generation() for standard RAG LLM gating
 │       │   ├── chorusgraph.py        # Egress envelope (reference orchestrator)
 │       │   └── clients.py            # optional HTTP; not on evaluate()
 │       └── experimental/
@@ -652,7 +653,12 @@ class DecisionGraph(BaseModel):
 
 Neighbors are **optional**. `PrismThinker.evaluate(ReasoningContext)` is complete without them. HTTP clients live in `adapters/` and MUST NOT be imported from `engine.py`.
 
-### 5.1 Ingress adapter (e.g. document store / VectorPrism)
+Two operating modes, same `evaluate()` contract:
+
+1. **Sovereign Prism stack.** ChorusGraph → VectorPrism → `from_vectorprism()` → PrismThinker → `to_chorusgraph()` → ChorusGraph. VectorPrism rejects cosine funny neighbors; PrismThinker tests logic; ChorusGraph honors the envelope.
+2. **Universal RAG plug-in.** Any retriever (LangChain, LlamaIndex, Pinecone, Weaviate, Qdrant, Chroma, pgvector, SQL, fixture) dumps documents. The caller maps them to `EvidenceItem`s (or `from_langchain` / `from_llamaindex` / `from_documents`), types the `Hypothesis` / `PolicyRule`s, and gates LLM generation on the `DecisionGraph`. PrismThinker does not care how the text was retrieved.
+
+### 5.1 Ingress adapter (e.g. document store / VectorPrism / standard RAG)
 
 Canonical types: `RetrievedDocument`, `from_documents()`. LangChain / LlamaIndex helpers are duck-typed and add no extra package dependency. `from_vectorprism()` is the VectorPrism join: it calls `from_documents()` and is the only supported mapping from VectorPrism payloads into `ReasoningContext`. `VectorPrismDocument` is an alias of `RetrievedDocument`.
 

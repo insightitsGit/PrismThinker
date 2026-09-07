@@ -81,6 +81,38 @@ def test_policy_happy_and_missing() -> None:
     assert und.verdict is Verdict.UNDETERMINED
 
 
+def test_policy_vetoes_action_payload_amount() -> None:
+    hyp = Hypothesis(
+        id="h1",
+        statement="Approve automated refund",
+        action=CandidateAction(
+            id="act_refund",
+            kind=ActionKind.TOOL_INVOCATION,
+            name="issue_refund",
+            payload={"amount": 750},
+        ),
+    )
+    ctx = ReasoningContext(
+        query="approve refund",
+        policy_rules=[
+            PolicyRule(
+                id="rule_refund_cap",
+                modality=DeonticModality.PROHIBITION,
+                predicate="action.payload.amount > 500",
+                severity=RuleSeverity.HARD_VETO,
+                text="Automated refunds cannot exceed $500.",
+            )
+        ],
+    )
+    out = PolicyEvaluator().evaluate(ctx, hyp)
+    assert out.verdict is Verdict.REJECT
+    assert out.hard_veto is True
+    hyp.action.payload["amount"] = 100  # type: ignore[union-attr]
+    ok = PolicyEvaluator().evaluate(ctx, hyp)
+    assert ok.hard_veto is False
+    assert ok.verdict is Verdict.APPROVE
+
+
 def test_empirical_happy_and_missing() -> None:
     hyp = _hyp()
     ctx = ReasoningContext(
