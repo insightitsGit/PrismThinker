@@ -10,9 +10,9 @@ ReasoningContext  →  PrismThinker.evaluate  →  DecisionGraph
 
 It scores one typed hypothesis across independent heads, **keeps conflict instead of averaging it**, and emits a graph any orchestrator can honor **before** tokens are generated or tools run.
 
-It does **not** import [VectorPrism](https://github.com/insightitsGit/VectorPrism) or [ChorusGraph](https://github.com/insightitsGit/ChorusGraph). In the **macro application stack** they compose; at the **package boundary** they stay decoupled. Joins are typed adapters only: `from_vectorprism()` in, `to_chorusgraph()` out. `evaluate()` still runs on a hand-built JSON `ReasoningContext` with no retriever and no orchestrator.
+It does **not** import [VectorPrism](https://github.com/insightitsGit/VectorPrism) or [ChorusGraph](https://github.com/insightitsGit/ChorusGraph). Both companion repos are public. In the **macro application stack** they compose; at the **package boundary** they stay decoupled. Joins are typed adapters only: `from_vectorprism()` in, `to_chorusgraph()` out. `evaluate()` still runs on a hand-built JSON `ReasoningContext` with no retriever and no orchestrator.
 
-Implementation contract: [`docs/architecture-specification-v1.1.md`](docs/architecture-specification-v1.1.md) — **v1.1 FROZEN**, schema `1.1.0`.
+Implementation contract: [`docs/architecture-specification-v1.1.md`](docs/architecture-specification-v1.1.md) — **v1.1 FROZEN**, schema `1.1.0`. What changed from the v1.0 architecture: [`CHANGELOG.md`](CHANGELOG.md).
 
 ```text
 [ User request / autonomous task ]
@@ -34,7 +34,7 @@ VectorPrism finds high-signal evidence. PrismThinker tests the logic. ChorusGrap
 
 **Python 3.11+** · **pydantic 2** · no LLM required on the v1.1 path · no ANN / vector-DB client on the evaluate path · no PyTorch on the default install
 
-**Author:** Amin Parva
+**Author:** Amin Parva · contact via [GitHub Issues](https://github.com/insightitsGit/PrismThinker/issues)
 
 ---
 
@@ -411,7 +411,9 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **109 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+CI (`.github/workflows/ci.yml`) runs the suite on Python 3.11 and 3.12, then `python -m build` + `twine check`. Isolation and predicate coverage must stay ≥ 90%.
+
+Current suite: **141 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
@@ -425,7 +427,8 @@ Current suite: **109 tests** (`tests/`, `pythonpath` includes `src` and repo roo
 | `test_disposition.py` | Lattice table including tie → conflict | Averaging or a nullable-verdict bug |
 | `test_counterfactual.py` | Only mutable specs; original facts unchanged; budget cap | Probes mutate production state |
 | `test_thresholds.py` | Prior is the center; off switch; polar never widens; clip bounds; determinism | Dynamic \(\tau\) became a second lattice |
-| `test_isolation.py` | Hung worker is terminated; isolated formal returns a result | Timeout cannot kill a head |
+| `test_isolation.py` | Hung worker is terminated; isolated formal returns a result; crash/timeout/startup failure paths | Timeout cannot kill a head, or a crash leaks into a fake verdict |
+| `test_predicates.py` | Parse errors, path binding, `in`/comparisons, AND/OR/NOT including UNBOUND | Rule evaluation silently invents True/False |
 | `test_adapters.py` | `REFUSE` empty tools; conflict strips tools; triad `from_vectorprism` → evaluate → `to_chorusgraph` blocks execution | Orchestrator could still call tools, or VectorPrism inversions skipped the conflict pass |
 | `test_rag_plugin.py` | Public plug-in imports; LangChain-shaped hits; refund cap `HARD_VETO` blocks generation; under-cap does not veto | RAG drop-in could not halt before the LLM |
 | `test_chunks.py` | Bench ingest stamps `numeric_claims` + source trust; cosine is not trust; empirical can fire | Bare RAG text starved the lattice |
@@ -580,6 +583,8 @@ src/prismthinker/
 docs/            architecture-specification-v1.1.md (contract)
 tests/           invariants first
 bench/           corpus, scenarios, hashed-ngram stand-in index, Docker neighbors, justice demo
+CHANGELOG.md
+.github/workflows/ci.yml
 docker-compose.yml
 ```
 
@@ -588,8 +593,10 @@ docker-compose.yml
 ## License / status
 
 **Author:** Amin Parva  
-**License:** MIT (`LICENSE`)
+**Contact:** [GitHub Issues](https://github.com/insightitsGit/PrismThinker/issues)  
+**License:** MIT (`LICENSE`)  
+**Changes:** [`CHANGELOG.md`](CHANGELOG.md)
 
 Package version `1.1.0`. Schema `1.1.0`. Architecture **frozen**. Calibration **not claimed**.
 
-Last measured (2026-09-07): `pytest` **109 passed**; Oresteia justice **3 passed** + demo `REFUSE` / `REFUSE` / `EXECUTE open_court` / `ANSWER`; local bench labeled **1.000** / contract **1.000**.
+Last measured (2026-09-07): `pytest` **141 passed**; isolation + predicates coverage **100%**; Oresteia justice **3 passed** + demo `REFUSE` / `REFUSE` / `EXECUTE open_court` / `ANSWER`; local bench labeled **1.000** / contract **1.000**.
