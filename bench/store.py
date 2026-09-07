@@ -4,7 +4,7 @@ import time
 import uuid
 from typing import Protocol
 
-from prismthinker.adapters.vectorprism import VectorPrismDocument
+from prismthinker.adapters.documents import RetrievedDocument
 
 from bench.encode import DIM, _TOKEN, cosine, embed
 
@@ -17,7 +17,7 @@ def _lexical(query: str, text: str) -> float:
     return len(qtoks & dtoks) / len(qtoks)
 
 
-def _hybrid(query: str, doc: VectorPrismDocument, cosine_score: float) -> float:
+def _hybrid(query: str, doc: RetrievedDocument, cosine_score: float) -> float:
     lexical = _lexical(query, f"{doc.id} {doc.source} {doc.text}")
     return max(0.0, min(1.0, 0.55 * cosine_score + 0.45 * lexical))
 
@@ -25,26 +25,26 @@ def _hybrid(query: str, doc: VectorPrismDocument, cosine_score: float) -> float:
 class RetrievalStore(Protocol):
     backend: str
 
-    def index(self, documents: list[VectorPrismDocument], collection: str) -> int: ...
+    def index(self, documents: list[RetrievedDocument], collection: str) -> int: ...
 
-    def search(self, query: str, top_k: int, collection: str) -> tuple[list[VectorPrismDocument], float]: ...
+    def search(self, query: str, top_k: int, collection: str) -> tuple[list[RetrievedDocument], float]: ...
 
 
 class MemoryStore:
     backend = "memory"
 
     def __init__(self) -> None:
-        self._docs: dict[str, list[tuple[VectorPrismDocument, list[float]]]] = {}
+        self._docs: dict[str, list[tuple[RetrievedDocument, list[float]]]] = {}
 
-    def index(self, documents: list[VectorPrismDocument], collection: str) -> int:
+    def index(self, documents: list[RetrievedDocument], collection: str) -> int:
         packed = [(doc, embed(f"{doc.id} {doc.source} {doc.text}")) for doc in documents]
         self._docs[collection] = packed
         return len(packed)
 
-    def search(self, query: str, top_k: int, collection: str) -> tuple[list[VectorPrismDocument], float]:
+    def search(self, query: str, top_k: int, collection: str) -> tuple[list[RetrievedDocument], float]:
         started = time.perf_counter()
         query_vec = embed(query)
-        ranked: list[tuple[float, VectorPrismDocument]] = []
+        ranked: list[tuple[float, RetrievedDocument]] = []
         for doc, vector in self._docs.get(collection, []):
             score = _hybrid(query, doc, cosine(query_vec, vector))
             ranked.append((score, doc))
@@ -79,7 +79,7 @@ class QdrantStore:
             )
         self._ready.add(collection)
 
-    def index(self, documents: list[VectorPrismDocument], collection: str) -> int:
+    def index(self, documents: list[RetrievedDocument], collection: str) -> int:
         from qdrant_client.http.models import PointStruct
 
         self._ensure(collection)
@@ -98,7 +98,7 @@ class QdrantStore:
         self._client.upsert(collection_name=collection, points=points, wait=True)
         return len(points)
 
-    def search(self, query: str, top_k: int, collection: str) -> tuple[list[VectorPrismDocument], float]:
+    def search(self, query: str, top_k: int, collection: str) -> tuple[list[RetrievedDocument], float]:
         self._ensure(collection)
         started = time.perf_counter()
         fetch = max(top_k, 16)
@@ -117,12 +117,12 @@ class QdrantStore:
                 limit=fetch,
                 with_payload=True,
             )
-        documents: list[VectorPrismDocument] = []
+        documents: list[RetrievedDocument] = []
         for hit in hits:
             payload = dict(hit.payload or {})
             payload.pop("doc_id", None)
             payload["score"] = 0.0
-            documents.append(VectorPrismDocument.model_validate(payload))
+            documents.append(RetrievedDocument.model_validate(payload))
         reranked = [
             doc.model_copy(update={"score": _hybrid(query, doc, float(hit.score))})
             for doc, hit in zip(documents, hits)

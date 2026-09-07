@@ -6,16 +6,16 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from prismthinker.adapters.vectorprism import (
-    VectorPrismIndexRequest,
-    VectorPrismIndexResponse,
-    VectorPrismRetrieveRequest,
-    VectorPrismRetrieveResponse,
+from prismthinker.adapters.documents import (
+    IndexRequest,
+    IndexResponse,
+    RetrieveRequest,
+    RetrieveResponse,
 )
 from bench.store import MemoryStore, QdrantStore, RetrievalStore
 
 COLLECTION_DEFAULT = "prismthinker"
-app = FastAPI(title="vectorprism-lite", version="1.1.0")
+app = FastAPI(title="mock-retriever", version="1.1.0")
 _store: RetrievalStore | None = None
 
 
@@ -31,21 +31,21 @@ def get_store() -> RetrievalStore:
 @app.get("/health")
 def health() -> dict[str, Any]:
     store = get_store()
-    return {"ok": True, "service": "vectorprism", "backend": store.backend}
+    return {"ok": True, "service": "mock_retriever", "backend": store.backend}
 
 
-@app.post("/v1/index", response_model=VectorPrismIndexResponse)
-def index_documents(body: VectorPrismIndexRequest) -> VectorPrismIndexResponse:
+@app.post("/v1/index", response_model=IndexResponse)
+def index_documents(body: IndexRequest) -> IndexResponse:
     store = get_store()
     count = store.index(body.documents, body.collection)
-    return VectorPrismIndexResponse(indexed=count, collection=body.collection, backend=store.backend)
+    return IndexResponse(indexed=count, collection=body.collection, backend=store.backend)
 
 
-@app.post("/v1/retrieve", response_model=VectorPrismRetrieveResponse)
-def retrieve(body: VectorPrismRetrieveRequest) -> VectorPrismRetrieveResponse:
+@app.post("/v1/retrieve", response_model=RetrieveResponse)
+def retrieve(body: RetrieveRequest) -> RetrieveResponse:
     store = get_store()
     documents, took_ms = store.search(body.query, body.top_k, body.collection)
-    return VectorPrismRetrieveResponse(
+    return RetrieveResponse(
         query=body.query,
         documents=documents,
         backend=store.backend,
@@ -62,8 +62,8 @@ async def _errors(_request, exc: Exception) -> JSONResponse:
 def main() -> None:
     import uvicorn
 
-    port = int(os.environ.get("VECTORPRISM_PORT", "8081"))
-    uvicorn.run("bench.services.vectorprism:app", host="0.0.0.0", port=port, log_level="info")
+    port = int(os.environ.get("RETRIEVER_PORT", os.environ.get("VECTORPRISM_PORT", "8081")))
+    uvicorn.run("bench.services.mock_retriever:app", host="0.0.0.0", port=port, log_level="info")
 
 
 if __name__ == "__main__":

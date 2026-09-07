@@ -6,22 +6,18 @@ from prismthinker.adapters.chorusgraph import (
     honor_envelope,
     to_chorusgraph,
 )
-from prismthinker.adapters.vectorprism import (
-    VectorPrismDocument,
-    VectorPrismRetrieveRequest,
-    from_vectorprism,
-)
+from prismthinker.adapters.documents import RetrievedDocument, RetrieveRequest, from_documents
 from prismthinker.core.schemas import ChorusGraphDirective
 from bench.corpus import corpus_documents
-from bench.neighbors import LocalChorusGraph, LocalVectorPrism
+from bench.neighbors import LocalChorusGraph, LocalRetriever
 from bench.runner import bench_config, run_scenario, score_case
 from bench.scenarios import all_scenarios, scenario_by_id
 from tests.conftest import cache_ttl_context
 
 
-def test_from_vectorprism_maps_freshness_and_numeric() -> None:
+def test_from_documents_maps_freshness_and_numeric() -> None:
     docs = [
-        VectorPrismDocument(
+        RetrievedDocument(
             id="d1",
             text="stale scrape",
             source="prom.checkout",
@@ -29,7 +25,7 @@ def test_from_vectorprism_maps_freshness_and_numeric() -> None:
             metadata={"trust": 0.4, "freshness_hours": 288, "numeric_claims": {"p99_latency_ms": 110}},
         )
     ]
-    ctx = from_vectorprism("q", docs)
+    ctx = from_documents("q", docs)
     assert ctx.evidence[0].freshness_hours == 288.0
     assert ctx.evidence[0].numeric_claims["p99_latency_ms"] == 110.0
     assert "numeric_claims" not in ctx.evidence[0].metadata
@@ -51,10 +47,10 @@ def test_honor_envelope_refuses_tools() -> None:
 
 
 def test_local_hybrid_retrieval_hits_privacy_docs() -> None:
-    store = LocalVectorPrism()
+    store = LocalRetriever()
     store.index(corpus_documents())
     response = store.retrieve(
-        VectorPrismRetrieveRequest(
+        RetrieveRequest(
             query="Reduce cache_ttl stay at 60s for checkout PII retention and GDPR.",
             top_k=8,
         )
@@ -65,7 +61,7 @@ def test_local_hybrid_retrieval_hits_privacy_docs() -> None:
 
 
 def test_contract_scenarios_hold_on_local_wire() -> None:
-    retriever = LocalVectorPrism()
+    retriever = LocalRetriever()
     retriever.index(corpus_documents())
     orchestrator = LocalChorusGraph()
     thinker = PrismThinker(bench_config())

@@ -33,7 +33,7 @@ v1.1 does not change the product thesis. It closes the v1.0 holes that made the 
 | Evidence | No inter-source pass | Evidence-conflict phase before heads run |
 | Citations | Evidence IDs only | Evidence / fact / rule / constraint / graph-edge / hypothesis |
 | Fast-path | Bypasses `DecisionGraph` | Same envelope, empty matrix, optional `fast_path` |
-| Neighbors | Named only | `vectorprism` ingress + `chorusgraph` egress directives |
+| Neighbors | Named only | Optional ingress DTO + egress envelope; VectorPrism/ChorusGraph are **examples**, not runtime deps |
 | Ops | Fast-path latency only | Parallel pool, timeouts, partial failure, config hash |
 | Experimental latent | In tree, unbound | Runtime-excluded; no import from `engine.py` |
 
@@ -47,15 +47,22 @@ Applied before lock, from review. Not a v1.2.
 4. **`EvaluatorPair`** sorts in a `mode="before"` validator. No in-place mutation of a constructed model.
 5. **Predicate parser** is recursive descent or a restricted `ast.parse` visitor. Regex parsing is forbidden.
 6. **Pool isolation.** Heads share read-only context. No scratchpad writes onto `ReasoningContext` or `Hypothesis`.
+7. **Neighbor names are reference implementations.** Ingress is any document-shaped producer (`RetrievedDocument` / `from_documents`). Egress is any orchestrator that honors the envelope. `vectorprism` and `chorusgraph` MAY appear as examples. They MUST NOT be imported by `engine.py`. Legacy names `VectorPrismDocument` / `from_vectorprism` are aliases.
+8. **Pool copies and crash messages.** Each `ThreadPoolExecutor` worker receives `model_copy(deep=True)` of `ReasoningContext` and `Hypothesis`. `EvaluatorError.message` is a single-line `"{ExcType}: {exc}"`; full tracebacks are logged on `prismthinker`, never placed on the graph.
 
 ---
 
 ## 1. System Context & Component Topology
 
-`prismthinker` sits between retrieval (`vectorprism`) and orchestration (`chorusgraph`). It evaluates **before** tokens are generated or tools are executed. ChorusGraph MUST honor the egress directive. A `HARD_VETO` is a refuse, not a suggestion.
+`prismthinker` is a standalone evaluation library. It does **not** require a retriever or an orchestrator at runtime.
+
+Callers build a `ReasoningContext` however they want — a vector database, Elasticsearch, SQL, a policy registry, or a test fixture. Optional adapters map common document shapes into that context. Optional egress maps a `DecisionGraph` into a directive envelope that **any** orchestrator MUST honor before tools or tokens run. [VectorPrism](https://github.com/insightitsGit/VectorPrism) and [ChorusGraph](https://github.com/insightitsGit/ChorusGraph) are **reference neighbors**, not dependencies.
+
+A `HARD_VETO` is a refuse, not a suggestion. `evaluate()` MUST NOT retrieve, index, or call tools.
 
 ```
-                    [ vectorprism ingress adapter ]
+                    [ optional ingress adapter ]
+                    [ e.g. RetrievedDocument / any store ]
                                     │
                                     ▼
                      ReasoningContext + Hypothesis
@@ -100,7 +107,8 @@ Applied before lock, from review. Not a v1.2.
                                               DecisionGraph (schema 1.1.0)
                                                            │
                                                            ▼
-                                              [ chorusgraph egress adapter ]
+                                              [ optional egress adapter ]
+                                              [ e.g. orchestrator / ChorusGraph ]
                                                            │
                                               EXECUTE | ANSWER | REFUSE
                                               ESCALATE | GATHER
@@ -174,10 +182,12 @@ prismthinker/
 │       │   ├── causal.py             # Graph reachability + intervention
 │       │   ├── policy.py             # Structured deontic gates
 │       │   └── utility.py            # Typed objective / SLA scorer
-│       ├── adapters/
+│       ├── adapters/                 # optional; never imported by engine.py
 │       │   ├── __init__.py
-│       │   ├── vectorprism.py        # Ingress
-│       │   └── chorusgraph.py        # Egress directives
+│       │   ├── documents.py          # RetrievedDocument + from_documents / langchain / llamaindex
+│       │   ├── vectorprism.py        # compatibility aliases
+│       │   ├── chorusgraph.py        # Egress envelope (reference orchestrator)
+│       │   └── clients.py            # optional HTTP; not on evaluate()
 │       └── experimental/
 │           └── latent/               # Research only; not imported at runtime
 │               ├── __init__.py
@@ -478,7 +488,7 @@ class EvaluatorCapability(BaseModel):
 class EvaluatorError(BaseModel):
     evaluator: str
     error_type: Literal["timeout", "crash", "invalid_output", "unauthorized_veto"]
-    message: str
+    message: str  # single-line "{ExcType}: {exc}"; never traceback.format_exc()
 
 class EvaluatorResult(BaseModel):
     evaluator: str
@@ -519,18 +529,21 @@ class ConflictComponent(BaseModel):
     assumption_conflict: float = Field(ge=0.0, le=1.0, default=0.0)
 
 class EvaluatorPair(BaseModel):
+    model_config = ConfigDict(frozen=True)
     left: str
     right: str
 
     @model_validator(mode="before")
     @classmethod
-    def sort_pair(cls, data: Any) -> Any:
+    def sort_lexicographical(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            left, right = data.get("left"), data.get("right")
+            payload = dict(data)
+            left, right = payload.get("left"), payload.get("right")
             if left == right:
                 raise ValueError("pair must contain two distinct evaluators")
             if left and right and left > right:
-                data["left"], data["right"] = right, left
+                payload["left"], payload["right"] = right, left
+            return payload
         return data
 
 class PairwiseDisagreement(BaseModel):
@@ -614,10 +627,14 @@ class DecisionGraph(BaseModel):
 
 ## 5. Neighbor Contracts
 
-### 5.1 `vectorprism` ingress
+Neighbors are **optional**. `PrismThinker.evaluate(ReasoningContext)` is complete without them. HTTP clients live in `adapters/` and MUST NOT be imported from `engine.py`.
+
+### 5.1 Ingress adapter (e.g. document store / VectorPrism)
+
+Canonical types: `RetrievedDocument`, `from_documents()`. LangChain / LlamaIndex helpers are duck-typed and add no extra package dependency. `VectorPrismDocument` / `from_vectorprism` are aliases.
 
 ```python
-class VectorPrismDocument(BaseModel):
+class RetrievedDocument(BaseModel):
     id: str
     text: str
     source: str
@@ -625,9 +642,9 @@ class VectorPrismDocument(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     retrieved_at: Optional[datetime] = None
 
-def from_vectorprism(
+def from_documents(
     query: str,
-    documents: List[VectorPrismDocument],
+    documents: List[RetrievedDocument],
     *,
     hypothesis: Optional[Hypothesis] = None,
     facts: Optional[Dict[str, FactValue]] = None,
@@ -641,12 +658,14 @@ Mapping rules:
 
 - `EvidenceItem.id = document.id`
 - `content = text`
-- `trust = clip(score, 0, 1)` unless `metadata.trust` is present
+- `trust = metadata.trust` when well-typed; otherwise `clip(score, 0, 1)` as a **fallback only**. Retrieval rank / cosine similarity is topical relevance, not truth or authority.
 - `provenance_hash = sha256(id + source + text)`
 - `numeric_claims` copied from `metadata.numeric_claims` if well-typed; otherwise empty
-- Retrieval rank/score MUST NOT enter evaluators as a preference signal. It may only set `trust`.
+- Retrieval rank/score MUST NOT enter evaluators as a preference signal.
+- Lifting `policy_rule` / `causal_graph` from chunk metadata is optional convenience. Production `PolicyRule` and `CausalGraph` belong in a policy registry / system config passed by the caller, not in ANN chunks.
+- The **caller** (or orchestrating agent) types the `Hypothesis`. A retriever finds text; it does not know what action is being decided.
 
-### 5.2 `chorusgraph` egress
+### 5.2 Egress directive (e.g. orchestrator / ChorusGraph)
 
 ```python
 class ChorusGraphEnvelope(BaseModel):
@@ -668,7 +687,7 @@ class ChorusGraphEnvelope(BaseModel):
 | `CONSENSUS` / `QUALIFIED_CONSENSUS` + `CAUTION` | `ESCALATE` | `[]` |
 | `review_required` and directive would be `EXECUTE` | promoted to `ESCALATE` | `[]` |
 
-ChorusGraph MUST NOT generate tool calls on `REFUSE`, `ESCALATE`, or `GATHER`. That is part of this contract, not a courtesy.
+The orchestrator (reference: ChorusGraph, or any runtime that consumes this envelope) MUST NOT generate tool calls on `REFUSE`, `ESCALATE`, or `GATHER`. That is part of this contract, not a courtesy.
 
 ---
 
@@ -1162,7 +1181,7 @@ Majority is a **count of heads**, not confidence-weighted. Confidence-weighting 
 4. If fast-path: assemble graph and return.
 5. Evidence conflict pass (§9).
 6. Select heads (§7).
-7. Run heads in parallel via `ThreadPoolExecutor`, each with `timeout_ms`. Pass the same immutable `ReasoningContext` and `Hypothesis` by reference. Heads MUST NOT write to those objects. On timeout/crash, write `EvaluatorError` and a synthetic `undetermined` result.
+7. Run heads in parallel via `ThreadPoolExecutor`, each with `timeout_ms`. Pass a **deep copy** of `ReasoningContext` and `Hypothesis` to each worker (inner dicts/lists are mutable even when `extra="forbid"`). Heads MUST NOT write to those objects; copies make a race unobservable if they do. On timeout/crash, write `EvaluatorError` with a single-line `"{ExcType}: {exc}"` message (log the traceback on logger `prismthinker`; never put `traceback.format_exc()` on the graph) and a synthetic `undetermined` result.
 8. Strip unauthorized vetoes.
 9. Apply uncited penalties.
 10. Compute \(\Delta\) and \(U\).

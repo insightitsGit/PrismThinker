@@ -2,24 +2,34 @@
 
 **Model-agnostic, disagreement-aware epistemic reasoning coprocessor.**
 
-Sits **between retrieval ([VectorPrism](https://github.com/insightitsGit/VectorPrism)) and orchestration ([ChorusGraph](https://github.com/insightitsGit/ChorusGraph))**. It scores one typed hypothesis across independent heads, **keeps conflict instead of averaging it**, and emits a `DecisionGraph` that ChorusGraph must honor **before** tokens are generated or tools run.
+Standalone library. One job:
+
+```text
+ReasoningContext  →  PrismThinker.evaluate  →  DecisionGraph
+```
+
+It scores one typed hypothesis across independent heads, **keeps conflict instead of averaging it**, and emits a graph any orchestrator can honor **before** tokens are generated or tools run.
+
+It does **not** require [VectorPrism](https://github.com/insightitsGit/VectorPrism), [ChorusGraph](https://github.com/insightitsGit/ChorusGraph), Pinecone, LangChain, or any other neighbor at runtime. Those are optional adapters or reference implementations. Keep your vector DB and your agent framework; add PrismThinker as the deterministic verification layer.
 
 Implementation contract: [`docs/architecture-specification-v1.1.md`](docs/architecture-specification-v1.1.md) — **v1.1 FROZEN**, schema `1.1.0`.
 
 ```text
-VectorPrism retrieve  →  ReasoningContext + Hypothesis
-                              │
-                              ▼
-                         PrismThinker
-                              │
-                              ▼
-                         DecisionGraph
-                              │
-                              ▼
-ChorusGraph envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
+any evidence source (Pinecone, Qdrant, SQL, fixture, VectorPrism, ...)
+        → ReasoningContext + Hypothesis     # you build this
+                    │
+                    ▼
+               PrismThinker                 # pydantic-only evaluate()
+                    │
+                    ▼
+               DecisionGraph
+                    │
+                    ▼
+optional egress envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
+        → any orchestrator (ChorusGraph, LangGraph, CrewAI, custom, ...)
 ```
 
-**Python 3.11+** · **pydantic 2** · no LLM required on the v1.1 path
+**Python 3.11+** · **pydantic 2** · no LLM required on the v1.1 path · no ANN / vector-DB client on the evaluate path · no PyTorch on the default install
 
 **Author:** Amin Parva
 
@@ -27,21 +37,23 @@ ChorusGraph envelope   EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
 
 ## Critical: PrismThinker is the measurement layer — not a chat model
 
-| Layer | Who owns it | What it does |
+| Layer | Who owns it | Runtime dependency of PrismThinker? |
 |---|---|---|
-| Split / encode / ANN | **VectorPrism** (or any retriever that emits the ingress payload) | Documents, scores, numeric claims |
-| Typed hypothesis + lattice | **PrismThinker** | `evaluate(ReasoningContext)` → `DecisionGraph` |
-| Tools / tokens / graph runtime | **ChorusGraph** | Honor `REFUSE` / `ESCALATE` / `GATHER` — no tools on those directives |
+| Split / encode / ANN | **Caller’s retriever** (Pinecone, Qdrant, Weaviate, pgvector, VectorPrism, …) | **No** |
+| Typed hypothesis + lattice | **PrismThinker** | This package |
+| Tools / tokens / graph runtime | **Caller’s orchestrator** (LangGraph, CrewAI, ChorusGraph, …) | **No** |
+
+Unix rule: each product does one thing, talks through typed contracts, and never assumes the others are present.
 
 **Supported**
 
 ```text
-retrieved docs + facts + rules + hypothesis
-        → from_vectorprism(...)
+facts + rules + hypothesis + optional evidence
         → PrismThinker.evaluate(ReasoningContext)
-        → to_chorusgraph(graph)
-        → ChorusGraph honors directive
+        → DecisionGraph
 ```
+
+Optional helpers (not used by `engine.py`): `from_documents`, `from_langchain`, `from_llamaindex`. Legacy names `from_vectorprism` / `VectorPrismDocument` are aliases.
 
 **Not supported (will look like “PrismThinker didn’t help”)**
 
@@ -49,6 +61,7 @@ retrieved docs + facts + rules + hypothesis
 untyped chat history + persona weights  →  PrismThinker.evaluate(...)
 free-text “just decide” with no Hypothesis / facts / rules
 averaging head verdicts into a compromise score
+calling evaluate() and expecting it to retrieve or run tools
 ```
 
 `PresentationContext` (user, persona, history) is a downstream object. `evaluate()` **rejects** it. Preference isolation is an invariant, not a style choice.
@@ -66,11 +79,13 @@ Enterprise stacks get stuck in two bad defaults:
 
 PrismThinker makes disagreement **typed, explainable, and actionable**:
 
-- One `Hypothesis` every head scores
+- One `Hypothesis` every head scores — typed by the **caller** (the agent proposing the action), never by the retriever
 - Five default heads with distinct `independence_class` values
 - Closed-form contradiction \(\Delta_{ij}\) (not vibes)
 - Disposition lattice with a **nullable** `recommended_verdict`
-- Egress directive ChorusGraph must not “soft ignore”
+- Egress directive the orchestrator must not “soft ignore”
+
+You keep Pinecone / Qdrant / Milvus. You keep LangGraph / CrewAI / Semantic Kernel. PrismThinker is the drop-in auditor, not a full-stack migration.
 
 ---
 
@@ -89,7 +104,7 @@ Every path, including `2 + 2` fast-path, returns the same `DecisionGraph`:
 | `config_hash` | SHA-256 of canonical `EngineConfig` |
 | `radar` | Axes + unresolved questions + hints (payload, not a UI) |
 
-ChorusGraph mapping (contract):
+Optional orchestrator mapping (`to_chorusgraph`, same rules for any runtime):
 
 | Disposition / flags | Directive | Tools |
 |---|---|---|
@@ -123,7 +138,7 @@ Bench: `sre_sla_healthy` (consensus + escalate on review), `sre_ship_closed_exec
 
 ### 3. Retrieval-contaminated decisions
 
-**Expectation:** the same 10s PII TTL is `ANSWER` on closed facts and `CONFLICT` / `QUALIFIED` once VectorPrism returns other `cache_ttl` numeric claims. Retrieval changes the lattice more than `τ` does.
+**Expectation:** the same 10s PII TTL is `ANSWER` on closed facts and `CONFLICT` / `QUALIFIED` once **retrieved neighbors** inject other `cache_ttl` numeric claims. Extra evidence changes the lattice more than \(\tau\) does. That evidence can come from any store — it is not VectorPrism-specific.
 
 Bench: `privacy_ttl_closed_answer` vs `assertion_policy_ok_answer` / `privacy_short_ttl_permit`
 
@@ -154,10 +169,16 @@ Tests: `tests/test_ast_safe.py`
 pip install -e ".[dev]"
 ```
 
-Neighbor bench extras (HTTP clients, FastAPI stand-ins, Qdrant):
+Neighbor bench extras (optional HTTP mock retriever, FastAPI stand-ins, Qdrant — **not** VectorPrism):
 
 ```bash
 pip install -e ".[bench]"
+```
+
+Research latent extra (`experimental/latent`, not imported by `engine.py`):
+
+```bash
+pip install -e ".[latent]"   # pulls torch; never required for evaluate()
 ```
 
 ---
@@ -188,34 +209,56 @@ assert envelope.directive.value == "refuse"
 assert envelope.allowed_tools == []
 ```
 
-Ingress from VectorPrism-shaped documents:
+Plug-and-play on an existing retriever (Pinecone, LangChain, SQL, fixture — same shape):
 
 ```python
-from prismthinker.adapters.vectorprism import VectorPrismDocument, from_vectorprism
-from prismthinker import PrismThinker
+from prismthinker import PrismThinker, ReasoningContext, ReasoningDisposition
+from prismthinker.core.schemas import (
+    ActionKind,
+    CandidateAction,
+    EvidenceItem,
+    Hypothesis,
+    PolicyRule,
+)
 
-docs = [
-    VectorPrismDocument(
-        id="priv.retention.policy",
-        text="PII cache_ttl must stay under 30s",
-        source="policy.privacy",
-        metadata={
-            "trust": 0.95,
-            "numeric_claims": {"cache_ttl": 30.0},
-            "policy_rule": {
-                "id": "pii-cache",
-                "modality": "prohibition",
-                "predicate": "fact.contains_pii == true and fact.cache_ttl >= 30",
-                "severity": "hard_veto",
-            },
-        },
-    )
-]
-ctx = from_vectorprism("keep cache_ttl at 60 for checkout PII", docs, extra=your_seed_context)
-graph = PrismThinker().evaluate(ctx)
+# docs = pinecone.similarity_search(query)  # or any retriever
+# company_policy_rules: list[PolicyRule]     # policy registry, not chunk metadata
+
+context = ReasoningContext(
+    query=user_prompt,
+    hypothesis=Hypothesis(
+        id="hyp:proposed-tool",
+        statement="invoke the proposed tool",
+        action=CandidateAction(
+            id="act:proposed-tool",
+            kind=ActionKind.TOOL_INVOCATION,
+            name="proposed_tool_call",
+            payload={},
+        ),
+    ),
+    evidence=[
+        EvidenceItem(id=d.id, content=d.page_content, source=d.metadata["source"])
+        for d in docs
+    ],
+    policy_rules=company_policy_rules,
+)
+
+graph = PrismThinker().evaluate(context)
+if graph.disposition is ReasoningDisposition.HARD_VETO:
+    raise PermissionError(graph.recommended_rationale)
 ```
 
-`from_vectorprism` maps `text → evidence`, `score/trust → trust`, `numeric_claims`, `freshness_hours`, and **lifts** `policy_rule` / `causal_graph` / `facts` from metadata when the seed does not already supply them. Retrieval rank is not a preference signal.
+Helpers if you already have LangChain / LlamaIndex objects (no extra deps):
+
+```python
+from prismthinker.adapters.documents import from_documents, from_langchain, from_llamaindex, RetrievedDocument
+
+ctx = from_langchain(query, lc_docs, extra=seed_context)
+ctx = from_llamaindex(query, li_nodes, extra=seed_context)
+ctx = from_documents(query, [RetrievedDocument(id="d1", text="...", source="wiki")], extra=seed_context)
+```
+
+`from_documents` maps `text → evidence`. `metadata.trust` wins; retrieval `score` is a **fallback only** (topical, not authoritative). It may lift `policy_rule` / `causal_graph` from chunk metadata for tests — production rules belong in a policy registry passed as `extra=` or `policy_rules`. Rank is not a preference signal.
 
 ---
 
@@ -254,22 +297,22 @@ First matching rule wins:
 pytest
 ```
 
-Current suite: **77 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
+Current suite: **88 tests** (`tests/`, `pythonpath` includes `src` and repo root). Non-LLM paths are deterministic on `disposition`, `recommended_verdict`, \(\Delta\), \(U\), and per-head verdicts (`test_byte_stable_non_llm_fields`).
 
 | File | What it guards | Expectation if it fails |
 |---|---|---|
-| `test_invariants.py` | Preference isolation, formal≠policy, veto capability, fail-closed LLM/selector/timeout, closed reason codes, citation sanitizer, no latent import | **Ship-blocker.** A pass here is the v1.1 constitution. |
+| `test_invariants.py` | Preference isolation, formal≠policy, veto capability, fail-closed LLM/selector/timeout, closed reason codes, citation sanitizer, no latent/torch/adapter import from engine, pool deep-copies, sanitized crashes | **Ship-blocker.** A pass here is the v1.1 constitution. |
 | `test_ast_safe.py` | Whitelist walker; no `eval`; mixed prose rejected; `2+2` envelope | Fast-path leaked into dialectic, or unsafe AST |
 | `test_classifier.py` | Regime features, overlays, force override, math-shaped ≠ fast-path | Wrong heads selected downstream |
 | `test_evaluators.py` | Each head happy/missing; no context mutation; assumptions; fact-primary empirical; SLA one-sided; n≥3 on distribution lexemes | A head is inventing signal or writing the context |
 | `test_evidence.py` | Numeric, trust, negation, stale, temporal conflicts | Evidence pass is silent |
-| `test_contradiction.py` | Weights sum to 1; approve↔reject conclusion = 1; inverted constraints/assumptions | \(\Delta\) is no longer explainable |
+| `test_contradiction.py` | Weights sum to 1; approve↔reject conclusion = 1; inverted constraints/assumptions; `EvaluatorPair` lex-sorts in `mode="before"` and is frozen | \(\Delta\) is no longer explainable |
 | `test_uncertainty.py` | \(U\) saturated; empty evidence does not fake coverage | Insufficient/conflict gates mis-fire |
 | `test_disposition.py` | Lattice table including tie → conflict | Averaging or a nullable-verdict bug |
 | `test_counterfactual.py` | Only mutable specs; original facts unchanged; budget cap | Probes mutate production state |
 | `test_thresholds.py` | Prior is the center; off switch; polar never widens; clip bounds; determinism | Dynamic \(\tau\) became a second lattice |
 | `test_isolation.py` | Hung worker is terminated; isolated formal returns a result | Timeout cannot kill a head |
-| `test_adapters.py` | `REFUSE` empty tools; review demotes `EXECUTE`; VectorPrism lift | ChorusGraph could still call tools |
+| `test_adapters.py` | `REFUSE` empty tools; review demotes `EXECUTE`; `from_documents` / LangChain / LlamaIndex | Orchestrator could still call tools |
 | `test_wire_and_bench.py` | Freshness mapping; local hybrid retrieval; **all `gold.contract` scenarios** | Neighbor wire or contract gold drifted |
 | `test_end_to_end.py` | Worked PII-cache example; `config_hash`; byte-stable fields | The spec’s §20 example is dead |
 
@@ -284,11 +327,13 @@ Labeled (non-contract) gold describes **intended outcomes under the current engi
 
 ---
 
-## Neighbor bench (Docker Desktop + local)
+## Optional neighbor bench (Docker Desktop + local)
+
+The bench is a **stack simulator**. `bench/services/mock_retriever.py` is not VectorPrism. `bench/services/chorusgraph.py` is not ChorusGraph.
 
 ```bash
 pip install -e ".[bench]"
-docker compose up -d --build          # Qdrant :6333, VectorPrism :8081, ChorusGraph :8082
+docker compose up -d --build          # Qdrant :6333, mock retriever :8081, mock orchestrator :8082
 python -m bench.runner --backend docker --out bench/out/docker
 ```
 
@@ -300,8 +345,8 @@ python -m bench.runner --backend local --out bench/out/local
 
 What the runner does:
 
-1. Index 28 VectorPrism-shaped documents (hybrid hashed n-gram + lexical rerank; Qdrant on Docker)
-2. For each of **28 labeled scenarios**, `retrieve` → `from_vectorprism` → `evaluate` → `to_chorusgraph` → `honor_envelope`
+1. Index 28 generic `RetrievedDocument`s (hybrid hashed n-gram + lexical rerank; Qdrant on Docker)
+2. For each of **28 labeled scenarios**, `retrieve` → `from_documents` → `evaluate` → `to_chorusgraph` → `honor_envelope`
 3. Optionally sweep `tau_base × qualified_tau × u_insufficient` (27 cells)
 4. Write `report.json`, `report.md`, and per-scenario wire dumps under `payloads/`
 
@@ -334,7 +379,7 @@ Sweep takeaway: on this grid the **center** `tau_base=0.40`, `qualified_tau=0.20
 | `uncited_penalty` | `0.50` | Confidence multiplier on uncited claims |
 | Dynamic \(\tau\) shifts | ±0.02–0.06 | Deterministic, not learned |
 
-**Calibrated** would mean: on a held-out, labeled corpus of real VectorPrism retrievals + human/policy outcomes, the chosen \(\tau\) (or a domain profile) minimizes a stated loss (false `EXECUTE`, missed veto, over-`GATHER`) with confidence intervals, and the profile is versioned separately from schema `1.1.0`.
+**Calibrated** would mean: on a held-out, labeled corpus of real retrievals (any store) + human/policy outcomes, the chosen \(\tau\) (or a domain profile) minimizes a stated loss (false `EXECUTE`, missed veto, over-`GATHER`) with confidence intervals, and the profile is versioned separately from schema `1.1.0`. You do **not** need VectorPrism to calibrate.
 
 **We do not have that.** What we have:
 
@@ -345,13 +390,13 @@ Sweep takeaway: on this grid the **center** `tau_base=0.40`, `qualified_tau=0.20
 
 **How to calibrate later (without opening v1.2 schema):**
 
-1. Log `DecisionGraph` + the ChorusGraph journal (`EXECUTE`/`REFUSE`/human override).
+1. Log `DecisionGraph` + the orchestrator journal (`EXECUTE`/`REFUSE`/human override).
 2. Label **false ship**, **missed veto**, **needless gather**, **correct hesitate**.
 3. Fit **domain profiles** (`EngineConfig` per `privacy` / `sre` / `finance`) that override `tau_base`, `qualified_tau`, `u_insufficient` only.
 4. Keep `config_hash` in the graph so two profiles never silently mix.
 5. Do **not** train \(\Delta\) weights or add LLM heads to “finish” v1.1.
 
-`dynamic_tau=False` is the control for A/B against a frozen prior. ECE / reliability diagrams belong on ChorusGraph or a later calibration package — not inside `evaluate()`.
+`dynamic_tau=False` is the control for A/B against a frozen prior. ECE / reliability diagrams belong on the orchestrator or a later calibration package — not inside `evaluate()`.
 
 ---
 
@@ -382,11 +427,13 @@ Latency budgets (priors, not SLOs we have measured in prod): fast-path ≪ 1 ms;
 
 - Not an LLM product. No NL→policy, no streaming dialectic.
 - Not SMT. Formal is typed facts + recursive-descent predicates.
-- Not VectorPrism and not ChorusGraph. Adapters are the neighbor contract; `bench/services/*` are stand-ins.
-- Not activation steering. `experimental/latent` must not be imported by `engine.py` (`test_engine_does_not_import_latent`).
+- Not a retriever and not an orchestrator. `evaluate()` never imports `adapters/`. Optional DTOs and `bench/services/mock_retriever.py` are stand-ins.
+- Not activation steering. `experimental/latent` must not be imported by `engine.py` (`test_engine_does_not_import_latent`, `test_engine_does_not_import_torch`). `torch` is `.[latent]` only.
 - Not a radar UI. `EpistemicRadarPayload` is data.
 
 A later version is allowed only when implementation or benchmarks **falsify** a v1.1 rule.
+
+Product-boundary note: [`docs/research-handoff-vectorprism-coupling.md`](docs/research-handoff-vectorprism-coupling.md).
 
 ---
 
@@ -397,7 +444,8 @@ src/prismthinker/
   core/          engine, lattice, Δ, U, thresholds, isolation
   evaluators/    formal, policy, empirical, causal, utility
   classifier/    AST fast-path + feature regime
-  adapters/      vectorprism ingress, chorusgraph egress, HTTP clients
+  adapters/      optional documents ingress, chorusgraph egress, HTTP clients
+                 (engine.py must not import this tree)
 docs/            architecture-specification-v1.1.md (contract)
 tests/           invariants first
 bench/           corpus, scenarios, runner, Docker neighbor services

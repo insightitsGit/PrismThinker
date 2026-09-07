@@ -7,12 +7,12 @@ from prismthinker.adapters.chorusgraph import (
     ChorusGraphOrchestrateRequest,
     ChorusGraphOrchestrateResponse,
 )
-from prismthinker.adapters.vectorprism import (
-    VectorPrismDocument,
-    VectorPrismIndexRequest,
-    VectorPrismIndexResponse,
-    VectorPrismRetrieveRequest,
-    VectorPrismRetrieveResponse,
+from prismthinker.adapters.documents import (
+    IndexRequest,
+    IndexResponse,
+    RetrievedDocument,
+    RetrieveRequest,
+    RetrieveResponse,
 )
 
 
@@ -24,7 +24,9 @@ def _httpx():
     return httpx
 
 
-class VectorPrismClient:
+class RetrieverClient:
+    """HTTP client for a retrieve/index service. Not imported by engine.py."""
+
     def __init__(self, base_url: str, timeout_s: float = 30.0) -> None:
         httpx = _httpx()
         self.base_url = base_url.rstrip("/")
@@ -38,22 +40,25 @@ class VectorPrismClient:
         response.raise_for_status()
         return response.json()
 
-    def index(self, documents: Sequence[VectorPrismDocument], collection: str = "prismthinker") -> VectorPrismIndexResponse:
-        payload = VectorPrismIndexRequest(documents=list(documents), collection=collection)
+    def index(self, documents: Sequence[RetrievedDocument], collection: str = "prismthinker") -> IndexResponse:
+        payload = IndexRequest(documents=list(documents), collection=collection)
         response = self._http.post(
             f"{self.base_url}/v1/index",
             json=payload.model_dump(mode="json"),
         )
         response.raise_for_status()
-        return VectorPrismIndexResponse.model_validate(response.json())
+        return IndexResponse.model_validate(response.json())
 
-    def retrieve(self, request: VectorPrismRetrieveRequest) -> VectorPrismRetrieveResponse:
+    def retrieve(self, request: RetrieveRequest) -> RetrieveResponse:
         response = self._http.post(
             f"{self.base_url}/v1/retrieve",
             json=request.model_dump(mode="json"),
         )
         response.raise_for_status()
-        return VectorPrismRetrieveResponse.model_validate(response.json())
+        return RetrieveResponse.model_validate(response.json())
+
+
+VectorPrismClient = RetrieverClient
 
 
 class ChorusGraphClient:

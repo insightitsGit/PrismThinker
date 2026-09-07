@@ -9,12 +9,12 @@ services:
       timeout: 3s
       retries: 20
 
-  vectorprism:
+  mock_retriever:
     build: .
-    command: python -m bench.services.vectorprism
+    command: python -m bench.services.mock_retriever
     environment:
       QDRANT_URL: http://qdrant:6333
-      VECTORPRISM_PORT: "8081"
+      RETRIEVER_PORT: "8081"
     ports:
       - "8081:8081"
     depends_on:

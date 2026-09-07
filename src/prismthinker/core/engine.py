@@ -21,6 +21,7 @@ from prismthinker.core.disposition import (
     strip_unauthorized_vetoes,
 )
 from prismthinker.core.evidence import detect_evidence_conflicts
+from prismthinker.core.failures import MAX_CRASH_MESSAGE, crash_message
 from prismthinker.core.schemas import (
     ActionKind,
     BackendKind,
@@ -269,7 +270,11 @@ class PrismThinker:
         started = time.perf_counter()
         with ThreadPoolExecutor(max_workers=max(1, len(names))) as pool:
             futures = {
-                name: pool.submit(self._registry[name].evaluate, context, hypothesis)
+                name: pool.submit(
+                    self._registry[name].evaluate,
+                    context.model_copy(deep=True),
+                    hypothesis.model_copy(deep=True),
+                )
                 for name in names
             }
             wait(list(futures.values()), timeout=budget)
@@ -291,7 +296,11 @@ class PrismThinker:
                     results[name] = _undetermined(name, REASON_TIMEOUT)
                 except Exception as exc:  # noqa: BLE001 — isolate head crashes
                     errors.append(
-                        EvaluatorError(evaluator=name, error_type="crash", message=str(exc))
+                        EvaluatorError(
+                            evaluator=name,
+                            error_type="crash",
+                            message=crash_message(exc, evaluator=name),
+                        )
                     )
                     results[name] = _undetermined(name, REASON_CRASH)
         over_budget = (time.perf_counter() - started) * 1000.0 >= self.config.pool_budget_ms
@@ -326,7 +335,11 @@ class PrismThinker:
                 continue
             terminate_process(process)
             errors.append(
-                EvaluatorError(evaluator=name, error_type="crash", message=failures[name])
+                EvaluatorError(
+                    evaluator=name,
+                    error_type="crash",
+                    message=_sanitize_isolated_crash(failures[name]),
+                )
             )
             results[name] = _undetermined(name, REASON_CRASH)
         started = time.perf_counter()
@@ -356,7 +369,11 @@ class PrismThinker:
                 results[name] = result
             else:
                 errors.append(
-                    EvaluatorError(evaluator=name, error_type="crash", message=str(payload))
+                    EvaluatorError(
+                        evaluator=name,
+                        error_type="crash",
+                        message=_sanitize_isolated_crash(payload),
+                    )
                 )
                 results[name] = _undetermined(name, REASON_CRASH)
         over_budget = (time.perf_counter() - started) * 1000.0 >= self.config.pool_budget_ms
@@ -582,6 +599,15 @@ def _undetermined(name: str, code: str) -> EvaluatorResult:
         reason_codes=[code],
         backend=backend,
     )
+
+
+def _sanitize_isolated_crash(payload: object) -> str:
+    text = str(payload).replace("\n", " ").strip()
+    if "Traceback" in text:
+        text = text.split("Traceback", 1)[0].strip() or "RuntimeError: isolated worker crashed"
+    if len(text) > MAX_CRASH_MESSAGE:
+        return text[: MAX_CRASH_MESSAGE - 3] + "..."
+    return text
 
 
 def _radar(

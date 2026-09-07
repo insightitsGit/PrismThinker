@@ -22,7 +22,9 @@ bench = [
     "httpx>=0.27",
     "qdrant-client>=1.9",
 ]
-latent = []
+latent = [
+    "torch>=2.2.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

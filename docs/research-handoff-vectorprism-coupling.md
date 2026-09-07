@@ -1,12 +1,30 @@
 # Research handoff: PrismThinker does not need VectorPrism
 
-**Status:** open research note (not a spec change)  
+**Status:** adopted (2026-09-06) — product-boundary collision, not an engine bug  
 **Date:** 2026-09-06  
 **Repo:** https://github.com/insightitsGit/PrismThinker  
 **Related:** [VectorPrism](https://github.com/insightitsGit/VectorPrism), [ChorusGraph](https://github.com/insightitsGit/ChorusGraph)  
 **Contract:** [`architecture-specification-v1.1.md`](./architecture-specification-v1.1.md) — frozen, schema `1.1.0`
 
-This note exists because the README / spec *story* makes it look like three products are one pipeline. They are not mixed at runtime. If you only read the diagram, you will over-couple them.
+The friction was a **suite trap**: because the same author designed VectorPrism (index), PrismThinker (epistemic reasoning), and ChorusGraph (orchestration), it looked like they must depend on each other at runtime. They must not.
+
+**Decision:** treat them as independent libraries (Unix rule). PrismThinker sells as a drop-in auditor on any existing retriever + agent stack. No full-stack migration.
+
+---
+
+## 0. Adopted verdicts
+
+| Question | Verdict | What shipped |
+|---|---|---|
+| 1. Stop naming VectorPrism/ChorusGraph as topology deps? | **Yes.** Spec §1 / §5 call them reference implementations. | Freeze correction 7 in v1.1 (still schema `1.1.0`) |
+| 2. Rename `VectorPrismDocument` → `RetrievedDocument`? | **Yes.** `adapters/documents.py`; `from_documents()`, `from_langchain()`, `from_llamaindex()`. | Legacy names remain as aliases |
+| 3. Move HTTP clients out of the core package? | **Keep in `adapters/`.** Harmless DTOs. `engine.py` must never import them. | `test_engine_does_not_import_adapters` |
+| 4. Rename `bench/services/vectorprism.py`? | **Yes → `mock_retriever.py`.** | Docker service `mock_retriever` |
+| 5. Who types the hypothesis? | **The caller / orchestrating agent.** Retriever finds text only. | Documented in spec §5.1 |
+| 6. Who owns `PolicyRule` / `CausalGraph`? | **Policy registry / system config.** Chunk metadata lift is a test convenience. | Documented; lift still optional |
+| 7. `trust = retrieval_score`? | **Fallback only.** `metadata.trust` wins. Cosine ≠ authority. | `_trust_for()` |
+
+What did **not** change: `evaluate()` surface, lattice, schema `1.1.0`, pydantic-only runtime.
 
 ---
 
@@ -68,23 +86,22 @@ VectorPrism is named the way “S3” is named in a storage spec: a likely produ
 
 The spec also says retrieval rank **must not** enter evaluators as a preference signal. Rank may only become `EvidenceItem.trust`. That rule only makes sense if retrieval stays **outside** the lattice.
 
-### B. Adapter in this repo (shape copy, no VectorPrism code)
+### B. Adapter in this repo (generic documents, VectorPrism aliases)
 
-`src/prismthinker/adapters/vectorprism.py`
+`src/prismthinker/adapters/documents.py` is the canonical mapper. `adapters/vectorprism.py` re-exports old names.
 
-- `VectorPrismDocument` — a local pydantic model (id, text, source, score, metadata)
-- `from_vectorprism(...)` — maps those docs into `ReasoningContext`
+- `RetrievedDocument` — local pydantic model (id, text, source, score, metadata)
+- `from_documents(...)` — maps those docs into `ReasoningContext`
+- `from_langchain` / `from_llamaindex` — duck-typed, no extra deps
 - HTTP request/response models for a retrieve/index API
 
-This is **not** the VectorPrism codebase. It is a DTO named after the sibling product. You could rename it `RetrievedDocument` and nothing in `engine.py` would change.
-
-`from_vectorprism` is also **not** on the public `__all__` of the package root. Callers who only `import prismthinker` never see it.
+This is **not** the VectorPrism codebase. `engine.py` does not import it. Callers who only `import prismthinker` never see it.
 
 ### C. Bench stand-in (fake service)
 
-`bench/services/vectorprism.py` + `bench/store.py` + Docker Compose `:8081`
+`bench/services/mock_retriever.py` + `bench/store.py` + Docker Compose `:8081`
 
-This is **vectorprism-lite**: FastAPI + hashed n-gram / Qdrant. It exists so we could stress `from_vectorprism` with retrieval-shaped payloads. It is **not** [insightitsGit/VectorPrism](https://github.com/insightitsGit/VectorPrism).
+This is a **mock retriever**: FastAPI + hashed n-gram / Qdrant. It exists so we could stress `from_documents` with retrieval-shaped payloads. It is **not** [insightitsGit/VectorPrism](https://github.com/insightitsGit/VectorPrism).
 
 Same pattern on the other side: `bench/services/chorusgraph.py` is not ChorusGraph.
 
@@ -172,7 +189,7 @@ Spend time here, in this order:
 2. `src/prismthinker/core/engine.py` — `evaluate()`; confirm no adapter import
 3. `src/prismthinker/core/schemas.py` — `ReasoningContext`, `Hypothesis`, `DecisionGraph`
 4. Spec §1 topology vs §5 neighbor contracts (notice: adapter, not engine)
-5. `src/prismthinker/adapters/vectorprism.py` — mapping only
+5. `src/prismthinker/adapters/documents.py` — generic mapping (`vectorprism.py` is aliases only)
 6. `tests/test_end_to_end.py` / `tests/test_invariants.py` — engine tests with **hand-built** context
 7. `bench/runner.py` — the one place retrieve is wired (optional path)
 
@@ -194,30 +211,25 @@ The bug in the current narrative is using VectorPrism as the **default mental mo
 
 ---
 
-## 10. If you change something later (do not do this in v1.1 freeze)
+## 10. Freeze line (still schema `1.1.0`)
 
-Allowed without a schema bump (documentation / naming only):
+Adapter rename and docs are done. Still forbidden:
 
-- README: lead with `evaluate(ReasoningContext)`; put VectorPrism under “optional ingress”
-- Rename DTOs in a later minor if you accept adapter churn
-- Move `bench/services/*` docs to “stack simulator, not the sibling products”
-
-Not allowed under frozen v1.1:
-
-- Importing VectorPrism or Qdrant from `engine.py`
+- Importing any retriever, Qdrant, or `adapters/` from `engine.py`
 - Making `evaluate()` retrieve
 - Treating retrieval score as a sixth head
-- Training \(\tau\) on VectorPrism rank
+- Training \(\tau\) on rank
+- Opening v1.2 (LLM heads, learned \(\Delta\), multi-hypothesis) to “integrate VectorPrism”
 
 ---
 
 ## 11. Bottom line
 
-You were right not to see a reason to mix them.
+The suite trap is closed in naming and adapters. The engine was already clean.
 
 - **Need VectorPrism to use PrismThinker?** No.
 - **Need VectorPrism inside the lattice?** No, and it would be a freeze violation.
-- **Need a retriever at all?** Only if the caller has no other way to populate evidence/facts. Many of the strongest tests never retrieve.
-- **Why the name is everywhere:** sibling-stack story + optional adapter + a fake bench service that borrowed the name.
+- **Need a retriever at all?** Only if the caller has no other way to populate evidence/facts.
+- **Sales motion:** keep Pinecone / Qdrant / LangGraph; add `evaluate(ReasoningContext)` as the auditor.
 
-Research the **ingress contract** (what a document must contain to become evidence/facts/rules). Do not research merging the codebases.
+Three contracts, not one mixed service.

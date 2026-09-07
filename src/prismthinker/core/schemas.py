@@ -268,7 +268,7 @@ class EvaluatorCapability(BaseModel):
 class EvaluatorError(BaseModel):
     evaluator: str
     error_type: Literal["timeout", "crash", "invalid_output", "unauthorized_veto"]
-    message: str
+    message: str  # single-line "{ExcType}: {exc}"; never a traceback or filesystem dump
 
 
 class EvaluatorResult(BaseModel):
@@ -297,19 +297,28 @@ class ConflictComponent(BaseModel):
 
 
 class EvaluatorPair(BaseModel):
+    """Frozen after construct. Lexicographic order is applied in mode='before'."""
+
+    model_config = ConfigDict(frozen=True)
+
     left: str
     right: str
 
     @model_validator(mode="before")
     @classmethod
-    def sort_pair(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            left, right = data.get("left"), data.get("right")
-            if left == right:
-                raise ValueError("pair must contain two distinct evaluators")
-            if left and right and left > right:
-                data = {**data, "left": right, "right": left}
-        return data
+    def sort_lexicographical(cls, data: Any) -> Any:
+        if isinstance(data, cls):
+            payload = {"left": data.left, "right": data.right}
+        elif isinstance(data, dict):
+            payload = dict(data)
+        else:
+            return data
+        left, right = payload.get("left"), payload.get("right")
+        if left == right:
+            raise ValueError("pair must contain two distinct evaluators")
+        if left and right and left > right:
+            payload["left"], payload["right"] = right, left
+        return payload
 
 
 class PairwiseDisagreement(BaseModel):

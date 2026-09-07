@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from prismthinker.adapters.vectorprism import VectorPrismDocument
+from prismthinker.adapters.documents import RetrievedDocument
 
 T0 = datetime(2026, 8, 1, tzinfo=timezone.utc)
 T1 = datetime(2026, 8, 8, tzinfo=timezone.utc)
 T2 = datetime(2026, 9, 1, tzinfo=timezone.utc)
 
 
-def corpus_documents() -> list[VectorPrismDocument]:
+def corpus_documents() -> list[RetrievedDocument]:
     return [
-        VectorPrismDocument(
+        RetrievedDocument(
             id="priv.retention.policy",
             text=(
                 "Privacy control: checkout session cache holding payment PII must not use "
@@ -32,7 +32,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             },
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="priv.ttl.60.incident",
             text=(
                 "Incident review: checkout cache_ttl stayed at 60 seconds while contains_pii "
@@ -43,7 +43,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.88, "numeric_claims": {"cache_ttl": 60.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="priv.ttl.10.ok",
             text=(
                 "Approved pattern: reduce cache_ttl to 10 seconds for checkout PII. Short TTL "
@@ -53,7 +53,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.9, "numeric_claims": {"cache_ttl": 10.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sre.p99.healthy",
             text=(
                 "SRE telemetry: checkout p99_latency_ms is 90 against a 200ms SLA. Throughput "
@@ -77,7 +77,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             },
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sre.p99.breach",
             text=(
                 "SRE page: p99_latency_ms climbed to 900. The 200ms SLA is breached. "
@@ -87,7 +87,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.84, "numeric_claims": {"p99_latency_ms": 900.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sre.qps.ok",
             text=(
                 "Capacity note: observed qps is 480 with headroom to 800. Throughput SLA is "
@@ -97,7 +97,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.8, "numeric_claims": {"qps": 480.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="health.phi.retention",
             text=(
                 "Healthcare HIPAA: patient chart cache retention_days must stay at or below 7. "
@@ -107,7 +107,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.97, "numeric_claims": {"retention_days": 7.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="health.phi.30",
             text=(
                 "Current store: EHR fragment cache retention_days is 30. PHI records remain "
@@ -117,7 +117,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.9, "numeric_claims": {"retention_days": 30.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="fin.notional.limit",
             text=(
                 "Finance compliance: automated equity trade notional_usd must not exceed "
@@ -127,7 +127,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.96, "numeric_claims": {"notional_usd": 250000.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="fin.ticket.400k",
             text=(
                 "Proposed ticket: buy mega-cap basket, notional_usd 400000. Desk has not "
@@ -137,7 +137,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.91, "numeric_claims": {"notional_usd": 400000.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sec.exfil.deny",
             text=(
                 "Security policy: export_pii must stay false. Bulk customer export and data "
@@ -147,7 +147,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.98},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sec.exfil.attempt",
             text=(
                 "DLP alert: export_pii is true on a warehouse dump job. Customer emails would "
@@ -157,7 +157,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.93, "numeric_claims": {"rows_exported": 120000.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="legal.gdpr.consent",
             text=(
                 "Legal GDPR: marketing send requires consent == true. Must not process email "
@@ -167,7 +167,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.97},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="legal.gdpr.no_consent",
             text=(
                 "CRM extract: consent is false for this cohort. GDPR legal hold says do not "
@@ -177,7 +177,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.89},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sci.pvalue.rep1",
             text=(
                 "Study replicate 1: treatment reduced error. Observed p-value 0.012 on the "
@@ -187,7 +187,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.82, "numeric_claims": {"pvalue": 0.012}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sci.pvalue.rep2",
             text=(
                 "Study replicate 2: posterior predictive check passed. p-value 0.018. "
@@ -197,7 +197,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.81, "numeric_claims": {"pvalue": 0.018}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sci.pvalue.rep3",
             text=(
                 "Study replicate 3: sample n=240, p-value 0.009. Combined distribution still "
@@ -207,7 +207,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.8, "numeric_claims": {"pvalue": 0.009, "n": 240.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sci.pvalue.thin",
             text=(
                 "Pilot only: two p-value draws, 0.04 and 0.06. Distribution claim is thin; "
@@ -217,7 +217,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.55, "numeric_claims": {"pvalue": 0.04}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="sci.pvalue.thin2",
             text=(
                 "Pilot second draw: p-value 0.06. Still only two observations for the "
@@ -227,7 +227,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.54, "numeric_claims": {"pvalue": 0.06}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="causal.ttl.latency",
             text=(
                 "Causal graph note: increasing cache_ttl raises hit rate and then lowers "
@@ -257,7 +257,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             },
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="causal.unrelated.cost",
             text=(
                 "Cost dashboard is not on the latency path. cloud_spend does not cause "
@@ -267,7 +267,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.7, "numeric_claims": {"cloud_spend": 4200.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="formal.ttl.range",
             text=(
                 "Schema constraint: cache_ttl is an int between 1 and 300. Values outside "
@@ -277,7 +277,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.92, "numeric_claims": {"cache_ttl": 300.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="ev.latency.low",
             text=(
                 "Canary probe A: measured latency 10ms on the edge POP. Numeric claim "
@@ -287,7 +287,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.9, "numeric_claims": {"latency": 10.0}},
             retrieved_at=T0,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="ev.latency.high",
             text=(
                 "Canary probe B: measured latency 40ms on a different POP. Numeric claim "
@@ -301,7 +301,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             },
             retrieved_at=T1,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="ev.stale.old",
             text=(
                 "Same metrics source, stale scrape: checkout latency snapshot is 12 days old. "
@@ -311,7 +311,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.4, "freshness_hours": 288.0, "numeric_claims": {"p99_latency_ms": 110.0}},
             retrieved_at=T0,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="ev.stale.fresh",
             text=(
                 "Same metrics source, fresh scrape: checkout p99_latency_ms is 110 from a "
@@ -321,7 +321,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.85, "freshness_hours": 2.0, "numeric_claims": {"p99_latency_ms": 110.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="open.mixed.policy.sla",
             text=(
                 "Long-running debate: should we keep cache_ttl, honor GDPR PII retention, "
@@ -332,7 +332,7 @@ def corpus_documents() -> list[VectorPrismDocument]:
             metadata={"trust": 0.6, "numeric_claims": {"cache_ttl": 60.0, "p99_latency_ms": 180.0}},
             retrieved_at=T2,
         ),
-        VectorPrismDocument(
+        RetrievedDocument(
             id="math.identity",
             text="Arithmetic identity tables used by the axiomatic fast path. 2 + 2 equals 4.",
             source="kb.math",

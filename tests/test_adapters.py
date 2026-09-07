@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from prismthinker import PrismThinker
 from prismthinker.adapters.chorusgraph import to_chorusgraph
+from prismthinker.adapters.documents import RetrievedDocument, from_documents, from_langchain, from_llamaindex
 from prismthinker.adapters.vectorprism import VectorPrismDocument, from_vectorprism
 from prismthinker.core.schemas import (
     ChorusGraphDirective,
@@ -33,11 +34,11 @@ def test_review_promotes_execute_to_escalate() -> None:
     assert envelope.allowed_tools == []
 
 
-def test_vectorprism_lifts_structured_bindings() -> None:
-    ctx = from_vectorprism(
+def test_from_documents_lifts_structured_bindings() -> None:
+    ctx = from_documents(
         "query",
         [
-            VectorPrismDocument(
+            RetrievedDocument(
                 id="d-rule",
                 text="policy",
                 source="policy.privacy",
@@ -68,11 +69,11 @@ def test_vectorprism_lifts_structured_bindings() -> None:
     assert ctx.causal_graph.edges[0].edge_id == "e1"
 
 
-def test_vectorprism_maps_evidence() -> None:
-    ctx = from_vectorprism(
+def test_from_documents_maps_evidence_rank_as_trust_fallback() -> None:
+    ctx = from_documents(
         "query",
         [
-            VectorPrismDocument(
+            RetrievedDocument(
                 id="d1",
                 text="hello",
                 source="idx",
@@ -85,6 +86,63 @@ def test_vectorprism_maps_evidence() -> None:
     assert ctx.evidence[0].trust == 0.8
     assert ctx.evidence[0].numeric_claims["n"] == 3.0
     assert ctx.evidence[0].provenance_hash
+
+
+def test_metadata_trust_beats_retrieval_score() -> None:
+    ctx = from_documents(
+        "query",
+        [
+            RetrievedDocument(
+                id="d1",
+                text="hello",
+                source="idx",
+                score=0.99,
+                metadata={"trust": 0.2},
+            )
+        ],
+    )
+    assert ctx.evidence[0].trust == 0.2
+
+
+def test_from_langchain_duck_types_page_content() -> None:
+    class LCDoc:
+        def __init__(self) -> None:
+            self.page_content = "PII TTL must stay under 30s"
+            self.metadata = {"source": "policy.privacy", "trust": 0.9}
+            self.id = "lc-1"
+
+    ctx = from_langchain("query", [LCDoc()])
+    assert ctx.evidence[0].id == "lc-1"
+    assert ctx.evidence[0].content.startswith("PII")
+    assert ctx.evidence[0].source == "policy.privacy"
+    assert ctx.evidence[0].trust == 0.9
+
+
+def test_from_llamaindex_duck_types_node_with_score() -> None:
+    class Node:
+        def __init__(self) -> None:
+            self.text = "incident review"
+            self.metadata = {"source": "sre.wiki"}
+            self.id_ = "li-1"
+
+    class NodeWithScore:
+        def __init__(self) -> None:
+            self.node = Node()
+            self.score = 0.4
+
+    ctx = from_llamaindex("query", [NodeWithScore()])
+    assert ctx.evidence[0].id == "li-1"
+    assert ctx.evidence[0].trust == 0.4
+    assert ctx.evidence[0].source == "sre.wiki"
+
+
+def test_vectorprism_names_are_aliases() -> None:
+    assert VectorPrismDocument is RetrievedDocument
+    ctx = from_vectorprism(
+        "query",
+        [VectorPrismDocument(id="d1", text="hello", source="idx", score=0.5)],
+    )
+    assert ctx.evidence[0].id == "d1"
 
 
 def test_gather_fact_keys_from_missing_required() -> None:

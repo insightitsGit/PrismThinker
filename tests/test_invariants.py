@@ -18,9 +18,13 @@ from prismthinker.core.schemas import (
     CitationKind,
     Claim,
     EvidenceItem,
+    FactSpec,
+    FactType,
     FactValue,
     DeonticModality,
     EvaluatorCapability,
+    EvaluatorPair,
+    Hypothesis,
     IndependenceClass,
     PolicyRule,
     RuleSeverity,
@@ -248,3 +252,73 @@ def test_engine_does_not_import_latent() -> None:
     assert "experimental.latent" not in source
     assert "projections" not in source
     assert "steering" not in source
+
+
+def test_engine_does_not_import_adapters() -> None:
+    import prismthinker.core.engine as engine
+
+    source = inspect.getsource(engine)
+    assert "adapters" not in source
+    assert "vectorprism" not in source
+    assert "RetrievedDocument" not in source
+    assert "from_documents" not in source
+
+
+def test_engine_does_not_import_torch() -> None:
+    import prismthinker.core.engine as engine
+
+    source = inspect.getsource(engine)
+    assert "torch" not in source
+    assert "import numpy" not in source
+    assert "import scipy" not in source
+
+
+def test_thread_pool_workers_receive_deep_copies() -> None:
+    class Mutator:
+        capability = FormalEvaluator.capability
+
+        def evaluate(self, context, hypothesis):
+            time.sleep(0.05)
+            context.structured_facts["n"].value = 999
+            context.evidence.append(EvidenceItem(id="poison", content="x", source="mutator"))
+            hypothesis.statement = "mutated"
+            return FormalEvaluator().evaluate(context, hypothesis)
+
+    hyp = Hypothesis(id="h1", statement="original")
+    ctx = ReasoningContext(
+        query="hello there general case",
+        hypothesis=hyp,
+        structured_facts={"n": FactValue(key="n", value=3)},
+        fact_specs={"n": FactSpec(key="n", fact_type=FactType.INT, minimum=0, maximum=10)},
+        evidence=[EvidenceItem(id="e1", content="ok", source="s")],
+    )
+    snapshot = ctx.model_dump()
+    thinker = PrismThinker(EngineConfig(isolate_heads=False, head_timeout_ms=2000, pool_budget_ms=4000))
+    thinker._registry["formal"] = Mutator()
+    graph = thinker.evaluate(ctx)
+    assert ctx.model_dump() == snapshot
+    assert ctx.structured_facts["n"].value == 3
+    assert ctx.hypothesis is not None
+    assert ctx.hypothesis.statement == "original"
+    assert all(item.id != "poison" for item in ctx.evidence)
+    assert "formal" in graph.evaluators
+
+
+def test_crash_message_is_single_line_and_logged(caplog: pytest.LogCaptureFixture) -> None:
+    class Boom:
+        capability = FormalEvaluator.capability
+
+        def evaluate(self, context, hypothesis):
+            raise RuntimeError("unit boom")
+
+    thinker = PrismThinker(EngineConfig(isolate_heads=False))
+    thinker._registry["formal"] = Boom()
+    with caplog.at_level("ERROR", logger="prismthinker"):
+        graph = thinker.evaluate(ReasoningContext(query="hello there general case"))
+    crash = next(err for err in graph.errors if err.evaluator == "formal" and err.error_type == "crash")
+    assert crash.message == "RuntimeError: unit boom"
+    assert "\n" not in crash.message
+    assert "Traceback" not in crash.message
+    assert 'File "' not in crash.message
+    assert "unit boom" in caplog.text
+    assert graph.evaluators["formal"].verdict is Verdict.UNDETERMINED

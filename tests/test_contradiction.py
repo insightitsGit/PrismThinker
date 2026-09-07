@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from pydantic import ValidationError
+
 from prismthinker.config import ContradictionWeights, EngineConfig
 from prismthinker.core.contradiction import pairwise_delta
 from prismthinker.core.schemas import (
     AssumptionAtom,
     ConstraintApplication,
     ConstraintStatus,
+    EvaluatorPair,
     Verdict,
 )
 from tests.conftest import result
@@ -54,3 +57,36 @@ def test_assumption_conflict_when_polarities_flip() -> None:
     ]
     pair = pairwise_delta(left, right, EngineConfig())
     assert pair.components.assumption_conflict == 1.0
+
+
+def test_evaluator_pair_sorts_before_construct_without_mutating_input() -> None:
+    payload = {"left": "utility", "right": "causal"}
+    pair = EvaluatorPair.model_validate(payload)
+    assert payload["left"] == "utility"
+    assert pair.left == "causal"
+    assert pair.right == "utility"
+    again = EvaluatorPair(left="utility", right="formal")
+    assert again.left == "formal"
+    assert again.right == "utility"
+
+
+def test_evaluator_pair_rejects_identical_and_is_frozen() -> None:
+    try:
+        EvaluatorPair(left="formal", right="formal")
+        raise AssertionError("expected ValidationError")
+    except ValidationError:
+        pass
+    pair = EvaluatorPair(left="policy", right="formal")
+    try:
+        pair.left = "utility"  # type: ignore[misc]
+        raise AssertionError("expected frozen error")
+    except ValidationError:
+        pass
+
+
+def test_pairwise_delta_emits_sorted_pair() -> None:
+    left = result("utility", Verdict.APPROVE)
+    right = result("causal", Verdict.REJECT)
+    pair = pairwise_delta(left, right, EngineConfig())
+    assert pair.pair.left <= pair.pair.right
+    assert {pair.pair.left, pair.pair.right} == {"causal", "utility"}

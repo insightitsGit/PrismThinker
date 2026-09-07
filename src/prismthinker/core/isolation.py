@@ -8,6 +8,7 @@ from queue import Empty
 from typing import Any
 
 from prismthinker.config import EngineConfig
+from prismthinker.core.failures import crash_message
 from prismthinker.core.schemas import EvaluatorResult, Hypothesis, ReasoningContext
 
 HEAD_STARTUP_TIMEOUT_S = 20.0
@@ -31,7 +32,7 @@ def head_worker(
         result = evaluator.evaluate(context, hypothesis)
         out.put(("ok", result.model_dump(mode="json")))
     except Exception as exc:  # noqa: BLE001 — isolate worker crashes
-        out.put(("crash", str(exc)))
+        out.put(("crash", crash_message(exc, evaluator=name)))
 
 
 def sleep_worker(seconds: float, out: Queue) -> None:

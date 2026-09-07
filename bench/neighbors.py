@@ -8,30 +8,33 @@ from prismthinker.adapters.chorusgraph import (
     ChorusGraphOrchestrateResponse,
     honor_envelope,
 )
-from prismthinker.adapters.vectorprism import (
-    VectorPrismDocument,
-    VectorPrismRetrieveRequest,
-    VectorPrismRetrieveResponse,
+from prismthinker.adapters.documents import (
+    RetrievedDocument,
+    RetrieveRequest,
+    RetrieveResponse,
 )
 from bench.store import MemoryStore, RetrievalStore
 
 
-class LocalVectorPrism:
+class LocalRetriever:
     def __init__(self, store: RetrievalStore | None = None) -> None:
         self.store = store or MemoryStore()
 
-    def index(self, documents: list[VectorPrismDocument], collection: str = "prismthinker") -> int:
+    def index(self, documents: list[RetrievedDocument], collection: str = "prismthinker") -> int:
         return self.store.index(documents, collection)
 
-    def retrieve(self, request: VectorPrismRetrieveRequest) -> VectorPrismRetrieveResponse:
+    def retrieve(self, request: RetrieveRequest) -> RetrieveResponse:
         documents, took_ms = self.store.search(request.query, request.top_k, request.collection)
-        return VectorPrismRetrieveResponse(
+        return RetrieveResponse(
             query=request.query,
             documents=documents,
             backend=self.store.backend,
             collection=request.collection,
             took_ms=took_ms,
         )
+
+
+LocalVectorPrism = LocalRetriever
 
 
 class LocalChorusGraph:

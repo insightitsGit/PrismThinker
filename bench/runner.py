@@ -13,12 +13,12 @@ from prismthinker.adapters.chorusgraph import (
     ChorusGraphOrchestrateRequest,
     to_chorusgraph,
 )
-from prismthinker.adapters.vectorprism import VectorPrismRetrieveRequest, from_vectorprism
+from prismthinker.adapters.documents import RetrieveRequest, from_documents
 from prismthinker.config import EngineConfig
 from prismthinker.core.schemas import DecisionGraph
 
 from bench.corpus import corpus_documents
-from bench.neighbors import LocalChorusGraph, LocalVectorPrism
+from bench.neighbors import LocalChorusGraph, LocalRetriever
 from bench.scenarios import Scenario, all_scenarios
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -101,11 +101,11 @@ def run_scenario(
     retrieve_ms = 0.0
     seed = scenario.seed.model_copy(update={"query": scenario.query}, deep=True)
     if scenario.retrieve:
-        request = VectorPrismRetrieveRequest(query=scenario.query, top_k=scenario.top_k)
+        request = RetrieveRequest(query=scenario.query, top_k=scenario.top_k)
         response = retriever.retrieve(request)
         retrieve_ms = response.took_ms
         retrieved_ids = [doc.id for doc in response.documents]
-        context = from_vectorprism(
+        context = from_documents(
             scenario.query,
             response.documents,
             hypothesis=seed.hypothesis,
@@ -198,13 +198,13 @@ def run_scenario(
 
 
 def _connect_docker(vector_url: str, chorus_url: str, timeout_s: float = 90.0):
-    from prismthinker.adapters.clients import ChorusGraphClient, VectorPrismClient
+    from prismthinker.adapters.clients import ChorusGraphClient, RetrieverClient
 
     deadline = time.time() + timeout_s
     last = ""
     while time.time() < deadline:
         try:
-            vector = VectorPrismClient(vector_url)
+            vector = RetrieverClient(vector_url)
             chorus = ChorusGraphClient(chorus_url)
             vector.health()
             chorus.health()
@@ -358,7 +358,7 @@ def write_markdown(bundle: dict[str, Any], path: Path) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Wire VectorPrism/ChorusGraph payloads and benchmark priors")
+    parser = argparse.ArgumentParser(description="Wire retrieve/orchestrate payloads and benchmark priors")
     parser.add_argument("--backend", choices=("docker", "local"), default="docker")
     parser.add_argument("--vector-url", default="http://127.0.0.1:8081")
     parser.add_argument("--chorus-url", default="http://127.0.0.1:8082")
@@ -375,7 +375,7 @@ def main(argv: list[str] | None = None) -> int:
         indexed = retriever.index(docs)
         print(f"indexed {indexed.indexed} documents via {indexed.backend}")
     else:
-        retriever = LocalVectorPrism()
+        retriever = LocalRetriever()
         retriever.index(docs)
         orchestrator = LocalChorusGraph()
         print(f"indexed {len(docs)} documents via memory store")
