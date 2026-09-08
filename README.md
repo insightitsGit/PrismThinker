@@ -5,46 +5,84 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/insightitsGit/PrismThinker/actions/workflows/ci.yml/badge.svg)](https://github.com/insightitsGit/PrismThinker/actions/workflows/ci.yml)
 
-**Deterministic pre-execution firewall and epistemic decision gate for autonomous AI agents.**
+**A typed decision gate for evaluating proposed AI-agent actions before execution.**
 
-PrismThinker is **AI agent guardrails** at the **tool-call firewall**, not a chat filter. It sits immediately before the execution boundary (API mutations, tool calls, SQL writes). Independent heads (policy, formal, empirical, causal, utility) score one typed action. Genuine contradiction is kept, not averaged. An authorized policy veto returns `tools: []`. When a call is blocked, budgeted counterfactuals say which **mutable fact** would clear it.
-
-That is how you **prevent agent hallucination tool calling**: the model may still propose `disburse_refund($4200)`. The coprocessor decides whether the host is allowed to run it. No LLM is on the `evaluate()` path — these are **deterministic LLM guardrails** in the sense that the *gate* does not sample.
+PrismThinker checks structured facts, constraints, policies, evidence, causal
+paths and objectives. It preserves evaluator verdicts and disagreement in a
+`DecisionGraph`, then maps that graph to an operational directive. The host
+orchestrator must enforce the directive before running tools.
 
 ```text
-ReasoningContext  →  PrismThinker.evaluate  →  DecisionGraph  →  to_chorusgraph()  →  EXECUTE | REFUSE | ESCALATE | GATHER
+Host-owned ReasoningContext → eligibility checks + evaluators → DecisionGraph
+                                                               ↓
+                                                       to_chorusgraph()
+                                                               ↓
+                                      EXECUTE | ANSWER | REFUSE | ESCALATE | GATHER
 ```
 
-Current routing: [v1.2 eligibility gate and migration](docs/eligibility-v1.2.md), schema `1.2.0`. The [frozen v1.1 specification](docs/architecture-specification-v1.1.md) remains historical. Changes: [`CHANGELOG.md`](CHANGELOG.md).
+## Test results at a glance
 
----
+- **247 automated tests passed locally**, covering the engine, adapters and
+  validation harness. See [tests and reproduction instructions](#tests) and
+  [hardening regression tests](tests/test_enterprise_correctness.py).
+- **180/180 correct action directives after the fixes**, with **0 unsafe
+  executions across 93 unsafe cases**. Execution coverage remained **48.3%**
+  (87/180 cases). See the [development replay report](validation/reports/enterprise-correctness-development.md)
+  and [per-case results](validation/reports/enterprise-correctness-development.json).
+- **Real local-model comparison: 180 frozen cases and 1,080 model calls.**
+  The original full engine produced **6/93 unsafe executions**, versus
+  multi-model majority vote's **28/93**, at the same **48.3% execution coverage**.
+  See the [full findings](validation/reports/local-v1.2-fresh-001/FINDINGS.md)
+  and [measurement audit](validation/reports/local-v1.2-fresh-001/MEASUREMENT_AUDIT.md).
 
-## Why PrismThinker?
+The original study used assistant-authored cases frozen before model evaluation.
+The subsequent replay tests repairs on those already inspected cases; it is not
+an independent held-out result. Both reports are retained so readers can inspect
+the improvements and their limits. [All saved validation reports](#tests).
 
-Most agent pilots stall because **enterprises cannot trust agents to execute**. Given *"maximize refund velocity"* and *"never disburse more than $2,500 without a supervisor"*, a single self-attention pass will often **average the conflict into a compromise**. In production that compromise is a policy violation.
+## Current status
 
-Text classifiers and LLM-as-a-judge do not close that **execution-containment** gap:
+This checkout prepares the **1.2.0 beta SDK release**, using schema **1.2.0**,
+including the enterprise-hardening changes described here. See the
+[release notes](CHANGELOG.md). The release has been validated locally; a build
+does not publish it to PyPI or establish that remote CI has passed.
 
-- **Pre-execution, not post-generation.** Operates on a typed `Hypothesis` + `CandidateAction`, not on the assistant's prose after the fact.
-- **Never averages disagreement.** If policy forbids and utility wants it, both verdicts stay on the graph. Authorized `HARD_VETO` locks tool calls (`tools: []`) every time.
-- **Recovery is a probed fact, not a 403 string.** Counterfactuals permute **mutable typed facts** and report which change lifts the veto. They do not rewrite `action.payload` for you.
-- **No GPU / no model on the default path.** Runtime dependency is `pydantic` only. Local bench eval p50 is **1.6 ms**. Production default `isolate_heads=True` adds process-spawn cost (measured mean **~494 ms** vs **~2.3 ms** in thread mode). Fast-path arithmetic is the sub-millisecond case.
+**The current target is a supervised SDK pilot or shadow evaluation, not
+unattended enterprise production.** Keep production actions behind human
+approval during the pilot. Passing tests and repairing known cases do not
+establish safety on unseen customer workloads.
 
-It does **not** import [VectorPrism](https://github.com/insightitsGit/VectorPrism) or [ChorusGraph](https://github.com/insightitsGit/ChorusGraph). Both companion repos are public. Joins are adapters only: `from_vectorprism()` in, `to_chorusgraph()` out. `evaluate()` still runs on a hand-built `ReasoningContext`.
+- **Implemented:** eligibility checks that cannot be outweighed by evaluator
+  votes; scoped policy authority; typed conflict signals; mandatory causal and
+  objective checks; guarded evidence supersession; a trusted proposal adapter.
+- **Locally verified:** 247 tests passed. The development replay gets 180/180
+  directives correct, with 0 unsafe executions among 93 unsafe cases and 48.3%
+  execution coverage. Those cases were inspected before the fixes.
+- **Still required for production:** approval bound to exact action arguments and
+  current policy, replay protection, request-wide limits and deadlines, host/API
+  authentication and authorization, audit and monitoring controls, rollback,
+  release checks and independently reviewed customer validation.
 
----
+See [enterprise behavior and integration requirements](docs/enterprise-hardening.md),
+[v1.2 eligibility and migration](docs/eligibility-v1.2.md), and the
+[development replay](validation/reports/enterprise-correctness-development.md).
+The [frozen v1.1 specification](docs/architecture-specification-v1.1.md) is historical.
 
-## How it compares
+## What the library provides
 
-| | Text guardrails (NeMo Guardrails, Guardrails AI) | Static policy (OPA, Cedar) | PrismThinker |
-|---|---|---|---|
-| **Focus** | Post-generation text / toxicity / topical rails | Boolean allow / deny on attributes | Pre-execution multi-method logic on one hypothesis |
-| **Conflict** | Often an extra LLM judge (consensus can be hallucinated) | Single allow/deny; no second method | Closed-form \(\Delta_{ij}\); heads are not blended |
-| **Uncertainty** | Folded into one confidence | Not a first-class score | Saturated \(U \in [0,1]\), independent of \(\Delta\) |
-| **Recovery** | None, or a static message | Error string | Budgeted counterfactual probes on mutable facts |
-| **Latency** | An extra model call | Microseconds–milliseconds | **No model** on `evaluate()`; 1.6 ms p50 local bench |
+- Policy, formal, empirical, causal and utility evaluators for one typed hypothesis.
+- Eligibility routing: proven blockers refuse; unresolved authority or conflicts
+  escalate; missing required information gathers evidence.
+- Contradiction and uncertainty diagnostics. Their thresholds are engineering
+  priors, and incremental value from Δ over simpler disagreement is unproven.
+- Budgeted counterfactual probes on mutable facts. These are diagnostic proposals,
+  not authorization to alter facts or execute a modified action.
+- A default evaluation path with no model calls or GPU requirement. The core
+  dependency is `pydantic`; benchmarks, validation and latent experiments use extras.
 
-NeMo / Guardrails AI are the right tool for *what the model is allowed to say*. OPA / Cedar are the right tool for *attribute RBAC*. Neither measures whether **independent methods agree** on the same proposed tool call, and neither emits a nullable `recommended_verdict` when they do not.
+Latency depends on configuration, workload and hardware. Default process
+isolation adds startup overhead; historical thread-mode numbers are not a
+production latency guarantee. See the saved [latency measurements](validation/reports/generated/latency-20260907T081123Z-9c6f716a/summary.md).
 
 ---
 
@@ -54,19 +92,23 @@ NeMo / Guardrails AI are the right tool for *what the model is allowed to say*. 
 pip install prismthinker
 ```
 
-Python **3.11+**. PyPI: [prismthinker 1.1.0](https://pypi.org/project/prismthinker/1.1.0/).
+Python **3.11+**. The command above installs the published package. To use the
+implementation described here, install from this checkout:
 
 ```bash
-pip install -e ".[dev]"      # pytest, coverage, build
-pip install "prismthinker[bench]"
-pip install "prismthinker[latent]"   # torch; never required for evaluate()
+pip install -e ".[dev,validation]"  # full test suite, coverage, build
+pip install -e ".[bench]"          # optional local benchmark services
+pip install -e ".[latent]"         # optional torch experiments
 ```
 
 ---
 
 ## Quickstart: guard a tool call
 
-Bind the prohibition to a **mutable typed fact**. Recovery probes `structured_facts`, not `action.payload`.
+This example uses host-owned facts and policy. The host must verify that facts
+match the proposed action and remain current at execution. Recovery probes
+`structured_facts`, not `action.payload`; a resolving probe does not approve
+the original payload.
 
 ```python
 from prismthinker import (
@@ -80,10 +122,10 @@ from prismthinker import (
     PolicyRule,
     PrismThinker,
     ReasoningContext,
-    ReasoningDisposition,
     RuleSeverity,
 )
 from prismthinker.adapters.chorusgraph import to_chorusgraph
+from prismthinker.core.schemas import ChorusGraphDirective
 
 context = ReasoningContext(
     query="Process emergency customer refund exception",
@@ -125,30 +167,33 @@ context = ReasoningContext(
 graph = PrismThinker().evaluate(context)
 envelope = to_chorusgraph(graph, allowed_tools=["disburse_refund"])
 
-if graph.disposition is ReasoningDisposition.HARD_VETO:
-    print("BLOCKED", graph.recommended_rationale)  # lattice.hard_veto
-    print(envelope.directive, envelope.allowed_tools)  # refuse []
+if envelope.directive is ChorusGraphDirective.EXECUTE:
+    # In a pilot, also obtain human approval. The host must validate arguments,
+    # check the tool allowlist and execute exactly the evaluated action.
+    print("ELIGIBLE FOR HOST EXECUTION", context.hypothesis.action)
+else:
+    print("NOT EXECUTABLE", envelope.directive.value, envelope.allowed_tools)
     for cf in graph.counterfactuals:
         if cf.resolving:
-            print("RECOVERY", cf.resolving_condition)
-            # amount 4200 → 2200 lifts the veto
-else:
-    run_tool(context.hypothesis.action)
+            print("DIAGNOSTIC PROPOSAL", cf.resolving_condition)
 ```
 
-Measured on this snippet: policy `REJECT` + `hard_veto`, formal still `APPROVE`, \(\Delta = 0.42\), directive `REFUSE`, tools `[]`. `PresentationContext` (user, persona, history) is rejected. Preference isolation is an invariant.
+This refund produces `REFUSE` and an empty tool list. Always consume the final
+adapter directive: the legacy graph verdict describes evaluator agreement and
+can differ from the eligibility decision. `PresentationContext` is rejected by
+`evaluate()`.
 
-LangChain / LlamaIndex / generic RAG:
+### Untrusted action proposals
 
-```python
-from prismthinker.adapters.documents import from_langchain, from_documents
-from prismthinker.adapters.rag import allow_generation
+For model-proposed actions, use
+`prismthinker.adapters.trusted.evaluate_proposal`. It accepts a statement and
+candidate action, rejects extra top-level fields, checks a host action-name
+allowlist and evaluates a deep copy of host-owned context. The host supplies
+policies, evidence, authority, facts and allowed tools.
 
-ctx = from_langchain(query, lc_docs, extra=seed_with_hypothesis_and_rules)
-graph = PrismThinker().evaluate(ctx)
-if not allow_generation(graph):
-    raise PermissionError(graph.recommended_rationale)
-```
+This is an in-process boundary. It does not authenticate network clients, sign
+envelopes or prevent replay. Never accept a client-supplied `EXECUTE` envelope
+as authorization. See the [trusted SDK example](docs/enterprise-hardening.md#trusted-sdk-entry-point).
 
 ---
 
@@ -158,13 +203,16 @@ if not allow_generation(graph):
 [ Candidate action / Hypothesis ]
                │
                ▼
+0. Eligibility assessment         mandatory checks, authority and evidence
+               │
+               ▼
 1. Epistemic regime classifier     fast-path arithmetic (AST whitelist) or dialectic
                │
                ▼
 2. Dynamic evaluator selection     policy, formal, empirical, causal, utility
                │
                ▼
-3. Independent head evaluation     typed claims; no shared decision procedure
+3. Head evaluation                 typed claims and evaluator diagnostics
                │
                ▼
 4. Contradiction + uncertainty     closed-form Δ_ij ; saturated U ∈ [0, 1]
@@ -173,7 +221,10 @@ if not allow_generation(graph):
 5. Counterfactual probes           mutable FactSpec values only
                │
                ▼
-6. Priority disposition lattice    DecisionGraph + ChorusGraphDirective
+6. Priority disposition lattice    legacy graph verdict
+               │
+               ▼
+7. Directive adapter               eligibility takes precedence; host enforces
 ```
 
 ### Contradiction \(\Delta_{ij}\)
@@ -206,13 +257,15 @@ Fallback mapping when the eligibility gate has no directive:
 | Consensus / qualified + assertion + `APPROVE` | `ANSWER` | `[]` |
 | Consensus / qualified + `REJECT` | `REFUSE` | `[]` |
 
-Only `EXECUTE` may keep tools. That is the firewall.
+Only `EXECUTE` may keep tools. Consensus with `CAUTION`, or an execution decision
+requiring review, escalates. The host remains responsible for actual execution
+enforcement.
 
 ---
 
 ## RAG and orchestrators
 
-Framework-agnostic. Compatible with LangChain, LangGraph, CrewAI, or any runtime that honors `ChorusGraphEnvelope`. There is no MCP or AutoGen adapter in v1.1 — pass a `ReasoningContext` in and honor the envelope out.
+Framework-agnostic. Compatible with LangChain, LangGraph, CrewAI, or any runtime that honors `ChorusGraphEnvelope`. There is no dedicated MCP or AutoGen adapter in this source tree — pass a `ReasoningContext` in and honor the envelope out.
 
 - **Retriever-agnostic:** `EvidenceItem` / `from_documents` / `from_langchain` / `from_llamaindex`, or [VectorPrism](https://github.com/insightitsGit/VectorPrism) via `from_vectorprism()`.
 - **Orchestrator-agnostic:** [ChorusGraph](https://github.com/insightitsGit/ChorusGraph) via `to_chorusgraph()`, or LangGraph / CrewAI / a custom host.
@@ -221,41 +274,43 @@ Unix rule: VectorPrism finds evidence. PrismThinker tests the logic. ChorusGraph
 
 ---
 
-## Benchmark: Oresteia justice (`python -m bench.justice`)
-
-Public-domain myth, not a copyrighted screenplay. Retrieval is allowed to surface both blood-price and the court. The lattice must not average that into “maybe kill him.”
-
-| Case | Lattice | \(\Delta\) | Tools |
-|---|---|---|---|
-| Extra-judicial killing | `HARD_VETO` | 0.43 | `[]` |
-| Furies' street execution | `HARD_VETO` | 0.43 | `[]` |
-| Athena's civic court | `CONSENSUS` | 0.10 | `EXECUTE open_court` |
-| What should happen to him? | `QUALIFIED_CONSENSUS` | 0.16 | `ANSWER`, tools `[]` |
-
-Local 28-scenario bench (2026-09-07): labeled **1.000**, contract **1.000**. `EXECUTE` once among 28 is the point: disagreeing scrapes should hesitate.
-
----
-
 ## Validation status
 
-The reproducible [validation harness](validation/README.md) covers agent execution, policy/compliance and evidence-intensive reasoning. On its 12-case synthetic validation split (`local-v0.1.1`, seed 42):
+The [validation harness](validation/README.md) covers agent execution,
+policy/compliance and evidence-conflict reasoning.
 
-- **0 unsafe autonomous actions**, **50% autonomous coverage**
-- **100% selective verdict accuracy** and **100% directive accuracy**
-- **1.00 conflict F1**, **0 runtime failures**
-- Exact verdict agreement **50%**: six mismatches still produced the correct `ESCALATE`
+The frozen **v1.2 local-model study** used 180 assistant-authored cases and
+1,080 model calls. PrismThinker made **6/93 unsafe executions**, compared with
+majority vote's **28/93**, at equal **48.3% execution coverage**. These are
+local small-model comparisons on authored data, not independent expert validation.
 
-These are synthetic fixtures with scripted mock baselines, not evidence of superiority over live language models. Protocol for the next live-model experiment: [`validation/protocol-v0.2.md`](validation/protocol-v0.2.md).
+After inspecting those cases and fixing causal, objective and evidence handling,
+the **development replay** produces **180/180 correct directives**, **0/93 unsafe
+executions** and unchanged **48.3% coverage**. The shared eligibility-only ablation
+also gets all directives correct. This demonstrates repair of known failures;
+it does not establish generalization or unique benefit from Δ.
 
-**Calibration is not claimed.** \(\tau_{\text{base}}=0.40\), `qualified_tau=0.20`, `u_insufficient=0.60` are engineering priors.
+The reports preserve the original failures and explain conflict-metric caveats.
+The replay's legacy verdict and broad-conflict metrics differ from operational
+directives and semantic conflict. Its zero engine-latency fields are uninstrumented
+placeholders. See the [measurement limits](validation/reports/enterprise-correctness-development.md#measurement-limits).
+
+**Calibration is not claimed.** `tau_base=0.40`, `qualified_tau=0.20` and
+`u_insufficient=0.60` are engineering priors. Aligned Δ remains a shadow diagnostic.
 
 ---
 
 ## Tests
 
+The [enterprise correctness milestone](docs/enterprise-hardening.md) adds mandatory
+causal/objective gates and a trusted SDK proposal boundary. Its
+[development replay](validation/reports/enterprise-correctness-development.md)
+corrects all 180 previously inspected directives, with 0/93 unsafe executions.
+This replay is a regression check, not new held-out scientific validation.
+
 Saved scientific validation reports:
 
-- [Fresh v1.2 full comparison](validation/reports/local-v1.2-fresh-001/FINDINGS.md): 180 new frozen cases and 1,080 model calls. PrismThinker made 6/93 unsafe executions versus majority vote's 28/93 at equal 48.3% coverage; the gate-only baseline made 21/93 at 56.7% coverage. Remaining causal failures, Delta limitations and a conflict-reporting audit are documented. Assistant-authored synthetic data, not independent expert validation.
+- [Fresh v1.2 full comparison](validation/reports/local-v1.2-fresh-001/FINDINGS.md): 180 new frozen cases and 1,080 model calls. PrismThinker made 6/93 unsafe executions versus majority vote's 28/93 at equal 48.3% coverage; the gate-only baseline made 21/93 at 56.7% coverage. The original causal failures, Delta limitations and a conflict-reporting audit are documented; the subsequent development replay is separate. Assistant-authored synthetic data, not independent expert validation.
 - [Local multi-model findings: 180 cases](validation/reports/local-v0.2-L-002/INTERPRETATION.md), [full measurements and plots](validation/reports/local-v0.2-L-002/summary.md), and [reproduction protocol](validation/LOCAL_SCIENCE.md). The corrected repeat observed 0/101 unsafe executions at 43.9% coverage, but 53.3% directive accuracy and zero conflict F1. It is a post-audit repeat on authored synthetic cases, not an independent held-out benchmark.
 - [Original local-run input audit](validation/reports/local-v0.2-L-001/AUDIT.md), with the compromised run's raw results preserved.
 - [v0.1.1 scripted-baseline report](validation/reports/generated/20260907T081332Z-7535746d/summary.md) and [latency report](validation/reports/generated/latency-20260907T081123Z-9c6f716a/summary.md).
@@ -264,12 +319,18 @@ Saved scientific validation reports:
 pytest
 ```
 
-CI (`.github/workflows/ci.yml`) runs pytest on 3.11 and 3.12, then `python -m build` + `twine check`. Isolation and predicate coverage must stay ≥ 90% (`core/isolation.py`, `core/predicates.py` are at 100% locally). The refund snippet above is pinned in `tests/test_readme_quickstart.py`.
+The latest full local run passed **247 tests**. CI (`.github/workflows/ci.yml`)
+is configured to run pytest on Python 3.11 and 3.12, plus package build and
+`twine check`. Isolation and predicate coverage checks require at least 90%.
+The refund behavior is covered by `tests/test_readme_quickstart.py`; the new
+hardening checks are in `tests/test_enterprise_correctness.py`. Local success
+does not establish the status of a remote CI run.
 
 ---
 
-## What v1.1 is not
+## Scope and limitations
 
+- Not a hosted production service. The FastAPI services under `bench/` are benchmark helpers.
 - Not an LLM product. No NL→policy. `EngineConfig.llm.enabled=True` fail-closes.
 - Not SMT. Formal is typed facts + a recursive-descent predicate parser.
 - Not a retriever and not an orchestrator. `evaluate()` does not import `adapters/`.

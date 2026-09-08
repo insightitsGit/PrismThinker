@@ -3,7 +3,7 @@ from __future__ import annotations
 from statistics import mean, pstdev
 
 from prismthinker.config import EngineConfig
-from prismthinker.core.evidence import detect_evidence_conflicts
+from prismthinker.core.evidence import active_evidence, detect_evidence_conflicts
 from prismthinker.classifier.features import EMPIRICAL_LEXEMES
 from prismthinker.core.schemas import (
     AssumptionAtom,
@@ -78,6 +78,7 @@ class EmpiricalEvaluator(Evaluator):
         self.config = config or EngineConfig()
 
     def evaluate(self, context: ReasoningContext, hypothesis: Hypothesis) -> EvaluatorResult:
+        context = context.model_copy(update={"evidence": active_evidence(context)})
         premises: list[str] = []
         support: list[str] = []
         fact_values: dict[str, float] = {}

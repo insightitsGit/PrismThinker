@@ -50,11 +50,42 @@ def _numeric_mismatch(left, right, key: str, context: ReasoningContext) -> tuple
     return mismatched, rel
 
 
+def active_evidence(context: ReasoningContext):
+    """Resolve explicit same-source replacement chains in trusted context.
+
+    Missing targets, ambiguous IDs, cycles and lower-trust replacements never
+    suppress evidence. The caller must authenticate provenance before ingestion.
+    """
+    items = context.evidence
+    by_id = {item.id: item for item in items}
+    if len(by_id) != len(items):
+        return list(items)
+    active = []
+    for item in items:
+        current = item
+        seen = {item.id}
+        replaced = False
+        while "superseded_by" in current.metadata:
+            target = current.metadata["superseded_by"]
+            replacement = by_id.get(target) if isinstance(target, str) else None
+            if (replacement is None or replacement.id in seen
+                    or replacement.source != current.source
+                    or replacement.trust < current.trust):
+                replaced = False
+                break
+            seen.add(replacement.id)
+            current = replacement
+            replaced = True
+        if not replaced:
+            active.append(item)
+    return active
+
+
 def detect_evidence_conflicts(
     context: ReasoningContext,
     config: EngineConfig,
 ) -> list[EvidenceConflict]:
-    items = context.evidence
+    items = active_evidence(context)
     now = datetime.now(timezone.utc)
     conflicts: list[EvidenceConflict] = []
     for i, left in enumerate(items):

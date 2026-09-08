@@ -1,5 +1,6 @@
 """Non-compensatory execution checks, independent of evaluator voting."""
 from itertools import combinations
+from math import isfinite
 
 from prismthinker.core.predicates import evaluate_predicate
 from prismthinker.core.schemas import (
@@ -75,6 +76,41 @@ def assess_eligibility(context, hypothesis, config=None):
         if status == "pass" and not result.value:
             status = "block"
         add(constraint.id, "constraint", status, result.error or f"constraint {status}", result.cited_fact_keys)
+
+    # Mandatory targets cannot be compensated by a favorable vote elsewhere.
+    if context.objective is not None:
+        for index, term in enumerate(context.objective.terms):
+            if not term.sla_breach_is_reject:
+                continue
+            fact = context.structured_facts.get(term.fact_key)
+            status = "pass"
+            if term.target is None or not isfinite(term.target):
+                status = "unknown"
+            elif fact is None:
+                status = "missing"
+            elif (type(fact.value) not in (int, float) or not isfinite(fact.value)
+                  or term.fact_key in invalid_facts):
+                status = "unknown"
+            elif term.direction == "hit":
+                # Existing utility scoring has an inferred tolerance; it is
+                # not an explicit mandatory acceptance interval.
+                status = "unknown"
+            elif ((term.direction == "maximize" and fact.value < term.target)
+                  or (term.direction == "minimize" and fact.value > term.target)):
+                status = "block"
+            add(f"objective:{index}", "constraint", status,
+                f"mandatory objective {term.fact_key}: {status}", [term.fact_key])
+
+    if action is not None and "effect_sign" in action.payload:
+        from prismthinker.evaluators.causal import CausalEvaluator
+        from prismthinker.core.schemas import Verdict
+        result = CausalEvaluator().evaluate(context, hypothesis)
+        status = "block" if result.verdict == Verdict.REJECT else "pass"
+        if result.verdict == Verdict.UNDETERMINED:
+            status = "missing" if any(q.startswith("missing") or q == "causal_graph is required"
+                                      for q in result.unresolved_questions) else "unknown"
+        add("causal-effect", "constraint", status,
+            "; ".join(result.unresolved_questions) or f"signed causal path requirement: {status}")
 
     for rule in context.policy_rules:
         if rule.action_name is not None and (action is None or rule.action_name != action.name):

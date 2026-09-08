@@ -31,17 +31,21 @@ def _reachable(
     start: str,
     goal: str,
     cut_incoming: set[str],
-) -> tuple[bool, list[list[int]]]:
+) -> tuple[bool, list[list[int | None]]]:
     adj: dict[str, list[tuple[str, int | None]]] = defaultdict(list)
     for src, dst, signed in edges:
         if dst in cut_incoming:
             continue
         adj[src].append((dst, signed))
 
-    sign_paths: list[list[int]] = []
-    queue: deque[tuple[str, list[int], set[str]]] = deque([(start, [], set())])
+    sign_paths: list[list[int | None]] = []
+    queue: deque[tuple[str, list[int | None], set[str]]] = deque([(start, [], set())])
     found = False
+    visited_states = 0
     while queue:
+        visited_states += 1
+        if visited_states > 10000:
+            raise ValueError("causal traversal budget exceeded")
         node, signs, seen = queue.popleft()
         if node == goal:
             found = True
@@ -52,9 +56,10 @@ def _reachable(
         nxt = seen | {node}
         for dest, signed in adj.get(node, []):
             extra = list(signs)
-            if signed in (-1, 0, 1):
-                extra.append(int(signed))
+            extra.append(signed)
             queue.append((dest, extra, nxt))
+            if len(queue) > 10000:
+                raise ValueError("causal traversal budget exceeded")
     return found, sign_paths
 
 
@@ -111,13 +116,22 @@ class CausalEvaluator(Evaluator):
             if key.startswith("do."):
                 do_nodes.add(key[3:])
 
-        reachable, sign_paths = _reachable(edges, treatment, outcome, do_nodes)
+        try:
+            reachable, sign_paths = _reachable(edges, treatment, outcome, do_nodes)
+        except ValueError as exc:
+            return EvaluatorResult(evaluator="causal", verdict=Verdict.UNDETERMINED,
+                confidence=0.0, unresolved_questions=[str(exc)],
+                reason_codes=[REASON_UNBOUND_PATH], backend=BackendKind.GRAPH)
         premises = [e.edge_id for e in graph.edges]
         citations = [
             Citation(kind=CitationKind.GRAPH_EDGE, ref=e.edge_id) for e in graph.edges[:8]
         ] or [Citation(kind=CitationKind.HYPOTHESIS, ref=hypothesis.id)]
 
-        claimed_positive = payload.get("effect_sign", 1) != -1
+        effect_sign = payload.get("effect_sign", 1)
+        if type(effect_sign) is not int or effect_sign not in (-1, 1):
+            return EvaluatorResult(evaluator="causal", verdict=Verdict.UNDETERMINED,
+                confidence=0.0, unresolved_questions=["effect_sign must be -1 or 1"],
+                reason_codes=[REASON_UNBOUND_PATH], backend=BackendKind.GRAPH)
         assumptions = [
             AssumptionAtom(
                 id="causal-faithful",
@@ -133,7 +147,8 @@ class CausalEvaluator(Evaluator):
         if not reachable:
             return EvaluatorResult(
                 evaluator="causal",
-                verdict=Verdict.REJECT,
+                verdict=Verdict.UNDETERMINED,
+                unresolved_questions=["missing directed causal path"],
                 confidence=0.5 if inferred else 0.85,
                 claims=[
                     Claim(
@@ -151,7 +166,11 @@ class CausalEvaluator(Evaluator):
                 backend=BackendKind.GRAPH,
             )
 
-        if sign_paths and all(p and _product(p) < 0 for p in sign_paths) and claimed_positive:
+        # Universal signed-path contract: a known counterexample defeats the
+        # claim even when other paths contain unknown signs. A zero edge fixes
+        # the product at zero even if another edge is unknown.
+        products = [0 if 0 in p else _product(p) for p in sign_paths if p and (0 in p or None not in p)]
+        if any(product != effect_sign for product in products):
             return EvaluatorResult(
                 evaluator="causal",
                 verdict=Verdict.REJECT,
@@ -160,7 +179,7 @@ class CausalEvaluator(Evaluator):
                     Claim(
                         id="causal-sign",
                         evaluator="causal",
-                        statement="all signed paths are negative",
+                        statement="a directed path contradicts the claimed effect sign",
                         polarity=-1.0,
                         confidence=0.85,
                         citations=citations,
@@ -171,6 +190,11 @@ class CausalEvaluator(Evaluator):
                 assumptions=assumptions,
                 backend=BackendKind.GRAPH,
             )
+
+        if any(not p or (None in p and 0 not in p) for p in sign_paths):
+            return EvaluatorResult(evaluator="causal", verdict=Verdict.UNDETERMINED,
+                confidence=0.0, unresolved_questions=["missing causal path sign"],
+                reason_codes=[REASON_UNBOUND_PATH], backend=BackendKind.GRAPH)
 
         return EvaluatorResult(
             evaluator="causal",

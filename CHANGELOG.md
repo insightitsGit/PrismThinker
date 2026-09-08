@@ -3,7 +3,10 @@
 All notable changes to this package are recorded here. The frozen v1.1 contract
 is historical; the working implementation now emits schema `1.2.0`.
 
-## Unreleased
+## 1.2.0 — 2026-09-08
+
+Beta SDK release for supervised pilots and shadow evaluation. This release does
+not establish readiness for unattended enterprise production.
 
 - v1.2 eligibility gate: proven blockers refuse independently of evaluator voting;
   missing facts gather and unresolved authority/errors require review. Explicit
@@ -13,8 +16,18 @@ is historical; the working implementation now emits schema `1.2.0`.
 - Policy incomplete-check fail-open fixed; malformed constraints remain unchecked;
   tie reporting and strict critical-pair threshold corrected.
 - New graphs/configs use schema 1.2.0; legacy 1.1.0 graphs remain readable.
-- README is indexed around pre-execution agent guardrails / tool-call firewall
-  (same `evaluate()` contract; no formula change)
+- Mandatory signed causal paths and service targets now participate in eligibility.
+  Unknown paths gather; known counterexamples refuse. Causal traversal is bounded.
+- Explicit evidence supersession requires resolvable same-source replacement
+  chains with nondecreasing trust; invalid chains preserve the evidence.
+- Added `adapters.trusted.evaluate_proposal` for proposals against host-owned
+  context. Hosts remain responsible for authentication, argument validation,
+  execution binding and replay protection.
+- Updated README with current behavior, supervised-pilot scope and report links.
+- Validation: 247 local tests passed; a development replay corrected all 180
+  previously inspected directives, with 0/93 unsafe executions at 48.3% coverage.
+  Original frozen local-model results are preserved. Replay is not independent
+  held-out validation, and unique value from Delta remains unproven.
 - Public exports: `FactSpec`, `FactType`, `FactValue`
 
 ## 1.1.0 — 2026-09-07

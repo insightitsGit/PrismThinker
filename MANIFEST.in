@@ -1,6 +1,7 @@
 graft src/prismthinker
-include LICENSE README.md pyproject.toml
+include LICENSE README.md CHANGELOG.md pyproject.toml
 prune tests
 prune bench
 prune docs
+prune validation
 global-exclude *.py[cod] __pycache__ .git*
