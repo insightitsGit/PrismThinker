@@ -341,7 +341,10 @@ does not establish the status of a remote CI run.
 ## License / community
 
 **Author:** Amin Parva ([Insight IT Solutions LLC](https://www.insightits.com))  
-**Contact:** [GitHub Issues](https://github.com/insightitsGit/PrismThinker/issues)  
+**Discussions:** [Ask, propose, or show work](https://github.com/insightitsGit/PrismThinker/discussions)  
+**Issues:** [Bugs and concrete defects](https://github.com/insightitsGit/PrismThinker/issues)  
+**Contribute:** [CONTRIBUTING.md](CONTRIBUTING.md) — fork or branch, then PR. **`main` is locked** (no direct commit or push).  
+**Security:** [SECURITY.md](SECURITY.md) — private advisories only  
 **License:** MIT (`LICENSE`)  
 **Source:** [github.com/insightitsGit/PrismThinker](https://github.com/insightitsGit/PrismThinker)  
 **PyPI:** [pypi.org/project/prismthinker/](https://pypi.org/project/prismthinker/)
