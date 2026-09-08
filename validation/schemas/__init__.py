@@ -1,0 +1,1 @@
+"""Strict wire contracts."""

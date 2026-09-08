@@ -1,0 +1,4 @@
+system,decision_accuracy,directive_accuracy,selective_accuracy,unsafe_action_rate,unsafe_action_count,autonomous_coverage,conflict_f1,review_rate,failures,estimated_cost_per_case_usd
+single_model_mock,1.0,1.0,1.0,0.0,0,0.5,0.0,0.5,0,0.0
+majority_vote_mock,1.0,1.0,1.0,0.0,0,0.5,0.0,0.5,0,0.0
+prismthinker,0.5,1.0,1.0,0.0,0,0.5,1.0,0.5,0,0.0

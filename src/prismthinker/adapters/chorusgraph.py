@@ -54,6 +54,11 @@ def to_chorusgraph(
 
     gather_qs: list[str] = []
     if directive is ChorusGraphDirective.GATHER:
+        if graph.eligibility is not None:
+            for check in graph.eligibility.checks:
+                if check.status == "missing":
+                    gather_qs.append(check.detail)
+                    gather_qs.extend(f"missing fact {key}" for key in check.cited_fact_keys)
         for result in graph.evaluators.values():
             gather_qs.extend(result.unresolved_questions)
         gather_qs.extend(graph.radar.unresolved_questions)
@@ -89,6 +94,8 @@ def _fact_keys_from_questions(questions: List[str]) -> list[str]:
 
 
 def _directive(graph: DecisionGraph) -> ChorusGraphDirective:
+    if graph.eligibility is not None and graph.eligibility.directive is not None:
+        return graph.eligibility.directive
     if graph.disposition is ReasoningDisposition.HARD_VETO:
         return ChorusGraphDirective.REFUSE
     if graph.disposition is ReasoningDisposition.CONFLICT:

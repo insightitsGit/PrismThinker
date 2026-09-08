@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -192,6 +192,59 @@ class PolicyRule(BaseModel):
     severity: RuleSeverity
     jurisdiction: Optional[str] = None
     text: str = ""
+    authority: Literal["trusted", "unknown"] = "trusted"
+    action_name: Optional[str] = None
+    applies_when: Optional[str] = None
+    conflict_group: Optional[str] = None
+
+
+class AlignedClaim(BaseModel):
+    """Caller-normalized claims; no text extraction or inferred authority."""
+    model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
+    id: str = Field(min_length=1)
+    subject: str = Field(min_length=1)
+    proposition: str = Field(min_length=1)
+    time_scope: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+    value: Union[str, bool, int, float]
+    kind: Literal["evidence", "authority"] = "evidence"
+    authority: Literal["trusted", "unknown"] = "trusted"
+    status: Literal["active", "superseded", "unknown"] = "active"
+    action_name: Optional[str] = None
+    citations: List[str] = Field(default_factory=list)
+    fact_keys: List[str] = Field(default_factory=list)
+
+
+class EligibilityCheck(BaseModel):
+    id: str
+    kind: Literal["policy", "constraint", "fact", "evidence", "authority"]
+    status: Literal["pass", "block", "missing", "unknown", "review", "not_applicable"]
+    authority: str = "trusted"
+    detail: str
+    cited_fact_keys: List[str] = Field(default_factory=list)
+
+
+class EligibilityAssessment(BaseModel):
+    behavior_version: Literal["eligibility-v1"] = "eligibility-v1"
+    directive: Optional[ChorusGraphDirective] = None
+    checks: List[EligibilityCheck] = Field(default_factory=list)
+
+
+class ConflictSignals(BaseModel):
+    material_evidence_conflict: bool = False
+    policy_authority_conflict: bool = False
+    evaluator_disagreement: bool = False
+    decision_tie: bool = False
+    aligned_conflict_pairs: List[List[str]] = Field(default_factory=list)
+
+
+class AlignedDelta(BaseModel):
+    version: Literal["aligned-shadow-v1"] = "aligned-shadow-v1"
+    score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    comparable_pairs: int = 0
+    contradictory_pairs: int = 0
+    excluded_claims: int = 0
+    sufficient_evidence: bool = False
 
 
 class CausalEdge(BaseModel):
@@ -227,6 +280,7 @@ class ReasoningContext(BaseModel):
     query: str
     hypothesis: Optional[Hypothesis] = None
     evidence: List[EvidenceItem] = Field(default_factory=list)
+    aligned_claims: List[AlignedClaim] = Field(default_factory=list)
     structured_facts: Dict[str, FactValue] = Field(default_factory=dict)
     fact_specs: Dict[str, FactSpec] = Field(default_factory=dict)
     policy_rules: List[PolicyRule] = Field(default_factory=list)
@@ -237,6 +291,13 @@ class ReasoningContext(BaseModel):
     domain: Optional[str] = None
     force_regime: Optional[EpistemicRegime] = None
     force_evaluators: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def unique_aligned_ids(self):
+        ids = [claim.id for claim in self.aligned_claims]
+        if len(ids) != len(set(ids)):
+            raise ValueError("aligned claim IDs must be unique")
+        return self
 
 
 class PresentationContext(BaseModel):
@@ -373,7 +434,7 @@ class EpistemicRadarPayload(BaseModel):
 
 
 class DecisionGraph(BaseModel):
-    schema_version: Literal["1.1.0"] = "1.1.0"
+    schema_version: Literal["1.1.0", "1.2.0"] = "1.2.0"
     run_id: str
     created_at: datetime
     config_hash: str
@@ -400,6 +461,9 @@ class DecisionGraph(BaseModel):
     fast_path: Optional[FastPathResult] = None
     errors: List[EvaluatorError] = Field(default_factory=list)
     timings_ms: Dict[str, float] = Field(default_factory=dict)
+    eligibility: Optional[EligibilityAssessment] = None
+    conflict_signals: ConflictSignals = Field(default_factory=ConflictSignals)
+    aligned_delta: AlignedDelta = Field(default_factory=AlignedDelta)
 
 
 def verdict_polarity(verdict: Verdict) -> Optional[float]:

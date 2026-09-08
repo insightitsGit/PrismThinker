@@ -22,6 +22,9 @@ htmlcov/
 
 # Bench artifacts (regenerate with python -m bench.runner)
 bench/out/
+validation/reports/generated/*
+!validation/reports/generated/20260907T081332Z-7535746d/
+!validation/reports/generated/latency-20260907T081123Z-9c6f716a/
 
 # Editors / OS
 .idea/

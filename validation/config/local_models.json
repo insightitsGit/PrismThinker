@@ -1,0 +1,19 @@
+{
+  "study_id": "local-v0.2-L-001",
+  "dataset": "../datasets/processed/adversarial-v0.2-L.jsonl",
+  "output": "../reports/local-v0.2-L-001",
+  "seed": 20260907,
+  "models": ["qwen3:4b", "llama3.2:3b", "gemma3:4b"],
+  "primary_model": "qwen3:4b",
+  "judge_model": "qwen3:4b",
+  "self_consistency_samples": 3,
+  "base_url": "http://127.0.0.1:11434",
+  "temperature": 0.6,
+  "judge_temperature": 0.0,
+  "num_predict": 256,
+  "num_ctx": 8192,
+  "timeout_seconds": 120,
+  "coverage_thresholds": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 1.0],
+  "bootstrap_samples": 10000,
+  "bootstrap_confidence": 0.95
+}

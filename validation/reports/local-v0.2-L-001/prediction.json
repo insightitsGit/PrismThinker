@@ -1,0 +1,302 @@
+{
+  "unsafe_to_execute": {
+    "complete_case_count": 179,
+    "excluded_count": 1,
+    "scores": {
+      "prism_delta": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.775,
+        "pr_auc": 0.8013966480446927
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.5,
+        "pr_auc": 0.5586592178770949
+      },
+      "prism_heads:dissent_count": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.475,
+        "pr_auc": 0.546611121813395
+      },
+      "prism_heads:confidence_spread": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.5,
+        "pr_auc": 0.5586592178770949
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.17848101265822786,
+        "pr_auc": 0.4371377944212801
+      },
+      "local_panel:binary_disagreement": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.45955696202531643,
+        "pr_auc": 0.5398538507581804
+      },
+      "local_panel:dissent_count": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.43936708860759494,
+        "pr_auc": 0.5310901144944441
+      },
+      "local_panel:confidence_spread": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.5887974683544304,
+        "pr_auc": 0.6198125669964749
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 100,
+        "auroc": 0.43936708860759494,
+        "pr_auc": 0.5310901144944441
+      }
+    }
+  },
+  "true_conflict": {
+    "complete_case_count": 179,
+    "excluded_count": 1,
+    "scores": {
+      "prism_delta": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.33532934131736525,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:dissent_count": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5149700598802395,
+        "pr_auc": 0.06896551724137931
+      },
+      "prism_heads:confidence_spread": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6541916167664671,
+        "pr_auc": 0.09453781512605042
+      },
+      "local_panel:binary_disagreement": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.655938123752495,
+        "pr_auc": 0.09561635408353283
+      },
+      "local_panel:dissent_count": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6761477045908184,
+        "pr_auc": 0.10488833210551088
+      },
+      "local_panel:confidence_spread": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.8011477045908184,
+        "pr_auc": 0.18690260204362133
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6761477045908184,
+        "pr_auc": 0.10488833210551088
+      }
+    }
+  },
+  "needs_human_review": {
+    "complete_case_count": 179,
+    "excluded_count": 1,
+    "scores": {
+      "prism_delta": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.33532934131736525,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:dissent_count": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5149700598802395,
+        "pr_auc": 0.06896551724137931
+      },
+      "prism_heads:confidence_spread": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.0670391061452514
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6541916167664671,
+        "pr_auc": 0.09453781512605042
+      },
+      "local_panel:binary_disagreement": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.655938123752495,
+        "pr_auc": 0.09561635408353283
+      },
+      "local_panel:dissent_count": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6761477045908184,
+        "pr_auc": 0.10488833210551088
+      },
+      "local_panel:confidence_spread": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.8011477045908184,
+        "pr_auc": 0.18690260204362133
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 12,
+        "auroc": 0.6761477045908184,
+        "pr_auc": 0.10488833210551088
+      }
+    }
+  },
+  "unsafe_action": {
+    "complete_case_count": 179,
+    "excluded_count": 1,
+    "scores": {
+      "prism_delta": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.4331360946745562,
+        "pr_auc": 0.05320337572803994
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.5,
+        "pr_auc": 0.055865921787709494
+      },
+      "prism_heads:dissent_count": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.4088757396449704,
+        "pr_auc": 0.0479547935529442
+      },
+      "prism_heads:confidence_spread": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.5,
+        "pr_auc": 0.055865921787709494
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.3242603550295858,
+        "pr_auc": 0.051488178279639044
+      },
+      "local_panel:binary_disagreement": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6452662721893491,
+        "pr_auc": 0.07790802075019951
+      },
+      "local_panel:dissent_count": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6106508875739645,
+        "pr_auc": 0.07790802075019951
+      },
+      "local_panel:confidence_spread": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.3893491124260355,
+        "pr_auc": 0.048505129328611694
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6106508875739645,
+        "pr_auc": 0.07790802075019951
+      }
+    }
+  },
+  "incorrect_autonomous_decision": {
+    "complete_case_count": 179,
+    "excluded_count": 1,
+    "scores": {
+      "prism_delta": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.4331360946745562,
+        "pr_auc": 0.05320337572803994
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.5,
+        "pr_auc": 0.055865921787709494
+      },
+      "prism_heads:dissent_count": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.4088757396449704,
+        "pr_auc": 0.0479547935529442
+      },
+      "prism_heads:confidence_spread": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.5,
+        "pr_auc": 0.055865921787709494
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.3242603550295858,
+        "pr_auc": 0.051488178279639044
+      },
+      "local_panel:binary_disagreement": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6452662721893491,
+        "pr_auc": 0.07790802075019951
+      },
+      "local_panel:dissent_count": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6106508875739645,
+        "pr_auc": 0.07790802075019951
+      },
+      "local_panel:confidence_spread": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.3893491124260355,
+        "pr_auc": 0.048505129328611694
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 179,
+        "positives": 10,
+        "auroc": 0.6106508875739645,
+        "pr_auc": 0.07790802075019951
+      }
+    }
+  }
+}

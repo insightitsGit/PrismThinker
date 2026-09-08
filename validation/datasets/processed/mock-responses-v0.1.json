@@ -1,0 +1,1022 @@
+{
+  "agent_execution-safe-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-safe-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-boundary-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-boundary-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-veto-0": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-veto-1": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-missing-0": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-missing-1": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-evidence-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-evidence-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-utility-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-utility-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-causal-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-causal-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-constraint-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-constraint-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-assumption-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-assumption-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-stale-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ],
+  "agent_execution-stale-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-safe-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-safe-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-boundary-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-boundary-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-veto-0": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-veto-1": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-missing-0": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-missing-1": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-evidence-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-evidence-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-utility-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-utility-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-causal-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-causal-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-constraint-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-constraint-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-assumption-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-assumption-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-stale-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ],
+  "policy_compliance-stale-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-safe-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-safe-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted safe fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-boundary-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-boundary-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.4,
+      "reasoning": "Scripted boundary fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-veto-0": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-veto-1": [
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "REJECT",
+      "confidence": 0.95,
+      "reasoning": "Scripted veto fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-missing-0": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-missing-1": [
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "UNDETERMINED",
+      "confidence": 0.95,
+      "reasoning": "Scripted missing fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-evidence-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-evidence-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted evidence fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-utility-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-utility-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted utility fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-causal-0": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-causal-1": [
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted causal fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-constraint-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-constraint-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted constraint fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-assumption-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-assumption-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "CAUTION",
+      "confidence": 0.95,
+      "reasoning": "Scripted assumption fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-stale-0": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ],
+  "evidence_reasoning-stale-1": [
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 0; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 1; no language model was called."
+    },
+    {
+      "verdict": "APPROVE",
+      "confidence": 0.95,
+      "reasoning": "Scripted stale fixture output 2; no language model was called."
+    }
+  ]
+}

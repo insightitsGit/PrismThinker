@@ -1,7 +1,21 @@
 # Changelog
 
-All notable changes to this package are recorded here. Schema and architecture
-version remain `1.1.0` unless a later release says otherwise.
+All notable changes to this package are recorded here. The frozen v1.1 contract
+is historical; the working implementation now emits schema `1.2.0`.
+
+## Unreleased
+
+- v1.2 eligibility gate: proven blockers refuse independently of evaluator voting;
+  missing facts gather and unresolved authority/errors require review. Explicit
+  trusted hard veto precedence is preserved. See `docs/eligibility-v1.2.md`.
+- Typed aligned claims, separate conflict signals and an aligned shadow score.
+  Existing Delta weights/formula are unchanged. Added gate-only validation ablation.
+- Policy incomplete-check fail-open fixed; malformed constraints remain unchecked;
+  tie reporting and strict critical-pair threshold corrected.
+- New graphs/configs use schema 1.2.0; legacy 1.1.0 graphs remain readable.
+- README is indexed around pre-execution agent guardrails / tool-call firewall
+  (same `evaluate()` contract; no formula change)
+- Public exports: `FactSpec`, `FactType`, `FactValue`
 
 ## 1.1.0 — 2026-09-07
 

@@ -39,6 +39,7 @@ def test_review_promotes_execute_to_escalate() -> None:
     graph.disposition = ReasoningDisposition.CONSENSUS
     graph.recommended_verdict = Verdict.APPROVE
     graph.review_required = True
+    graph.eligibility = None  # Exercise the legacy review fallback in isolation.
     envelope = to_chorusgraph(graph, allowed_tools=["ship"])
     assert envelope.directive is ChorusGraphDirective.ESCALATE
     assert envelope.allowed_tools == []
@@ -62,7 +63,8 @@ def test_conflict_strips_chorusgraph_tools() -> None:
         ChorusGraphDirective.REFUSE,
     }
     if graph.disposition is ReasoningDisposition.CONFLICT:
-        assert envelope.directive is ChorusGraphDirective.ESCALATE
+        # Voting disagreement remains visible, but a proven BLOCK now refuses.
+        assert envelope.directive is ChorusGraphDirective.REFUSE
         assert graph.recommended_verdict is None
 
 

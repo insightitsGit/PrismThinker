@@ -1,0 +1,90 @@
+{
+  "phase": "retrospective diagnosis, not held-out validation",
+  "source": "validation/reports/local-v0.2-L-002/cases.jsonl",
+  "cases": 180,
+  "cases_with_evidence": 0,
+  "groups": {
+    "EXECUTE": {
+      "count": 79,
+      "head_patterns": {
+        "[('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'approve'), ('utility', 'undetermined')]": 45,
+        "[('causal', 'undetermined'), ('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'approve'), ('utility', 'undetermined')]": 34
+      },
+      "rationales": {
+        "lattice.consensus": 79
+      },
+      "deltas": [
+        0.1
+      ],
+      "examples": [
+        "local-8585c3c80377b2a7",
+        "local-9dd429d09f339006"
+      ]
+    },
+    "REFUSE": {
+      "count": 84,
+      "head_patterns": {
+        "[('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'reject'), ('utility', 'undetermined')]": 51,
+        "[('causal', 'undetermined'), ('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'reject'), ('utility', 'undetermined')]": 33
+      },
+      "rationales": {
+        "lattice.conflict": 84
+      },
+      "deltas": [
+        0.39999999999999997,
+        0.41,
+        0.41666666666666663,
+        0.425,
+        0.43,
+        0.43333333333333335
+      ],
+      "examples": [
+        "local-132daec2e5701318",
+        "local-8b326e49111020dd"
+      ]
+    },
+    "GATHER": {
+      "count": 5,
+      "head_patterns": {
+        "[('empirical', 'undetermined'), ('formal', 'undetermined'), ('policy', 'approve'), ('utility', 'undetermined')]": 5
+      },
+      "rationales": {
+        "lattice.insufficient": 5
+      },
+      "deltas": [
+        0.1
+      ],
+      "examples": [
+        "local-ae03d7d5d8cf9c1c",
+        "local-292917bd460ad3bc"
+      ]
+    },
+    "ESCALATE": {
+      "count": 12,
+      "head_patterns": {
+        "[('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'caution'), ('utility', 'undetermined')]": 6,
+        "[('causal', 'undetermined'), ('empirical', 'undetermined'), ('formal', 'approve'), ('policy', 'caution'), ('utility', 'undetermined')]": 6
+      },
+      "rationales": {
+        "lattice.tie": 12
+      },
+      "deltas": [
+        0.235,
+        0.24166666666666667
+      ],
+      "examples": [
+        "local-4055c8721ee0a1ba",
+        "local-5343dbb14b325bdb"
+      ]
+    }
+  },
+  "nonzero_critical_pair_components": {
+    "conclusion_conflict": 84,
+    "evidence_conflict": 0,
+    "premise_conflict": 84,
+    "constraint_conflict": 0,
+    "assumption_conflict": 0
+  },
+  "retrospective_policy_only_directive_correct": 175,
+  "policy_only_warning": "Post-hoc ablation of saved heads, not a preregistered baseline or a safe production controller."
+}

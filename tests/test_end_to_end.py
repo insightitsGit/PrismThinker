@@ -8,7 +8,7 @@ from tests.conftest import cache_ttl_context
 
 
 def test_package_version() -> None:
-    assert __version__ == "1.1.0"
+    assert __version__ == "1.2.0"
 
 
 def test_worked_example_cache_ttl() -> None:

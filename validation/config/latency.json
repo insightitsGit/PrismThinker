@@ -1,0 +1,13 @@
+{
+  "seed": 42,
+  "dataset_version": "local-v0.1.1",
+  "dataset": "../datasets/processed/local-v0.1.1.jsonl",
+  "split": "validation",
+  "splits": [0.6, 0.2, 0.2],
+  "output": "../reports/generated",
+  "warmup_rounds": 1,
+  "repetitions": 3,
+  "profile_repetitions": 1,
+  "head_repetitions": 5,
+  "modes": [true, false]
+}

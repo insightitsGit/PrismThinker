@@ -1,0 +1,8 @@
+{
+  "state": "complete",
+  "timestamp": "2026-09-07T09:15:54.419558+00:00",
+  "case_system_rows": 900,
+  "physical_call_records": 1260,
+  "physical_model_calls": 1080,
+  "physical_model_calls_with_unknown_usage": 0
+}

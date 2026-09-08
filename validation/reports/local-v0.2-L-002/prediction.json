@@ -1,0 +1,302 @@
+{
+  "unsafe_to_execute": {
+    "complete_case_count": 180,
+    "excluded_count": 0,
+    "scores": {
+      "prism_delta": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.9752475247524752,
+        "pr_auc": 0.9782728272827284
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.5,
+        "pr_auc": 0.5611111111111111
+      },
+      "prism_heads:dissent_count": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.4752475247524752,
+        "pr_auc": 0.5491922049347792
+      },
+      "prism_heads:confidence_spread": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.5,
+        "pr_auc": 0.5611111111111111
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.0,
+        "pr_auc": 0.4761341302197447
+      },
+      "local_panel:binary_disagreement": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.454442912645695,
+        "pr_auc": 0.5401822892569631
+      },
+      "local_panel:dissent_count": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.4522496553452814,
+        "pr_auc": 0.5385629684463773
+      },
+      "local_panel:confidence_spread": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.6186865521995237,
+        "pr_auc": 0.6583591753183812
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 101,
+        "auroc": 0.4522496553452814,
+        "pr_auc": 0.5385629684463773
+      }
+    }
+  },
+  "true_conflict": {
+    "complete_case_count": 180,
+    "excluded_count": 0,
+    "scores": {
+      "prism_delta": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.10237068965517242
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.06666666666666667
+      },
+      "prism_heads:dissent_count": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5148809523809523,
+        "pr_auc": 0.06857142857142857
+      },
+      "prism_heads:confidence_spread": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.06666666666666667
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.25297619047619047,
+        "pr_auc": 0.05634453781512605
+      },
+      "local_panel:binary_disagreement": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.6726190476190477,
+        "pr_auc": 0.09979231568016612
+      },
+      "local_panel:dissent_count": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7671130952380952,
+        "pr_auc": 0.20576694852395788
+      },
+      "local_panel:confidence_spread": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7777777777777778,
+        "pr_auc": 0.13792226743858432
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7671130952380952,
+        "pr_auc": 0.20576694852395788
+      }
+    }
+  },
+  "needs_human_review": {
+    "complete_case_count": 180,
+    "excluded_count": 0,
+    "scores": {
+      "prism_delta": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.10237068965517242
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.06666666666666667
+      },
+      "prism_heads:dissent_count": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5148809523809523,
+        "pr_auc": 0.06857142857142857
+      },
+      "prism_heads:confidence_spread": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.5,
+        "pr_auc": 0.06666666666666667
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.25297619047619047,
+        "pr_auc": 0.05634453781512605
+      },
+      "local_panel:binary_disagreement": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.6726190476190477,
+        "pr_auc": 0.09979231568016612
+      },
+      "local_panel:dissent_count": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7671130952380952,
+        "pr_auc": 0.20576694852395788
+      },
+      "local_panel:confidence_spread": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7777777777777778,
+        "pr_auc": 0.13792226743858432
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 12,
+        "auroc": 0.7671130952380952,
+        "pr_auc": 0.20576694852395788
+      }
+    }
+  },
+  "unsafe_action": {
+    "complete_case_count": 180,
+    "excluded_count": 0,
+    "scores": {
+      "prism_delta": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5487200660611066,
+        "pr_auc": 0.06308267914314206
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5,
+        "pr_auc": 0.03888888888888889
+      },
+      "prism_heads:dissent_count": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.365813377374071,
+        "pr_auc": 0.03151927437641724
+      },
+      "prism_heads:confidence_spread": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5,
+        "pr_auc": 0.03888888888888889
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.16432700247729148,
+        "pr_auc": 0.027557689742563694
+      },
+      "local_panel:binary_disagreement": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.6366639141205616,
+        "pr_auc": 0.05361964100281857
+      },
+      "local_panel:dissent_count": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.601981833195706,
+        "pr_auc": 0.05361964100281857
+      },
+      "local_panel:confidence_spread": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.3992568125516102,
+        "pr_auc": 0.03329171068494806
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.601981833195706,
+        "pr_auc": 0.05361964100281857
+      }
+    }
+  },
+  "incorrect_autonomous_decision": {
+    "complete_case_count": 180,
+    "excluded_count": 0,
+    "scores": {
+      "prism_delta": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5487200660611066,
+        "pr_auc": 0.06308267914314206
+      },
+      "prism_heads:binary_disagreement": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5,
+        "pr_auc": 0.03888888888888889
+      },
+      "prism_heads:dissent_count": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.365813377374071,
+        "pr_auc": 0.03151927437641724
+      },
+      "prism_heads:confidence_spread": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.5,
+        "pr_auc": 0.03888888888888889
+      },
+      "prism_heads:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.16432700247729148,
+        "pr_auc": 0.027557689742563694
+      },
+      "local_panel:binary_disagreement": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.6366639141205616,
+        "pr_auc": 0.05361964100281857
+      },
+      "local_panel:dissent_count": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.601981833195706,
+        "pr_auc": 0.05361964100281857
+      },
+      "local_panel:confidence_spread": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.3992568125516102,
+        "pr_auc": 0.03329171068494806
+      },
+      "local_panel:one_minus_majority_margin": {
+        "n": 180,
+        "positives": 7,
+        "auroc": 0.601981833195706,
+        "pr_auc": 0.05361964100281857
+      }
+    }
+  }
+}

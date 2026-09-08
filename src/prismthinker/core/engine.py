@@ -89,6 +89,34 @@ class PrismThinker:
     def evaluate(self, context: object) -> DecisionGraph:
         if isinstance(context, PresentationContext) or not isinstance(context, ReasoningContext):
             raise TypeError("PrismThinker.evaluate accepts ReasoningContext only")
+        from prismthinker.core.eligibility import assess_eligibility
+        from prismthinker.reason_codes import REASON_ELIGIBILITY_GATE
+        from prismthinker.core.schemas import ChorusGraphDirective
+
+        started = time.perf_counter()
+        eligibility, signals, shadow, rules = assess_eligibility(context, materialize_hypothesis(context), self.config)
+        effective = context.model_copy(update={"policy_rules": rules})
+        graph = self._evaluate(effective)
+        signals.evaluator_disagreement = len({r.verdict for r in graph.evaluators.values()
+                                             if r.verdict is not Verdict.UNDETERMINED}) > 1
+        signals.decision_tie = graph.recommended_rationale == "lattice.tie"
+        signals.material_evidence_conflict |= any(
+            c.conflict_type.value in {"numeric_mismatch", "explicit_negation"}
+            for c in graph.evidence_conflicts)
+        graph.eligibility = eligibility
+        graph.conflict_signals = signals
+        graph.aligned_delta = shadow
+        if eligibility.directive is not None:
+            graph.review_reasons = list(dict.fromkeys(graph.review_reasons + [REASON_ELIGIBILITY_GATE]))
+        if eligibility.directive == ChorusGraphDirective.ESCALATE:
+            graph.review_required = True
+        graph.radar.review_required = graph.review_required
+        graph.timings_ms["total"] = (time.perf_counter() - started) * 1000.0
+        return graph
+
+    def _evaluate(self, context: object) -> DecisionGraph:
+        if isinstance(context, PresentationContext) or not isinstance(context, ReasoningContext):
+            raise TypeError("PrismThinker.evaluate accepts ReasoningContext only")
         started = time.perf_counter()
         timings: dict[str, float] = {}
         hypothesis = materialize_hypothesis(context)

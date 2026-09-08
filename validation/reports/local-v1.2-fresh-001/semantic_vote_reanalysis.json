@@ -1,0 +1,1829 @@
+{
+  "phase": "post-run reporting correction; no inference or action changes",
+  "rule": "Strict majority of saved samples semantic conflict flags. Any failed sample means missing detection. Missing positives are recall misses.",
+  "raw_cases_sha256": "467ea6d22d5146f89eceb04b7e41f99e69a3e2706f2755ec3109e3be4e4203d5",
+  "methods": {
+    "self_consistency": {
+      "tp": 3,
+      "fp": 5,
+      "fn": 32,
+      "missing": 15,
+      "precision": 0.375,
+      "recall": 0.08571428571428572,
+      "f1": 0.13953488372093023,
+      "records": [
+        {
+          "case_id": "fresh-fb7fb7bd71185ac3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b3e596366fd48bc6",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2111ee65c4c61689",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-876ef656075d8a0f",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-632fd3ce2dc2eab1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-47fb3e98db8452d8",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-3a8a28158f0282cc",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-dec1d682fe514fca",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8c910bc946d2509b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5857f08ae33480c6",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2e3bb0b85ba6717e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5d5ab1a17089e4ac",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0dbac62d74cbcd8b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-78f7480f85b82271",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-13649a1627110856",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a764e7112365917f",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-7ba2b165868747ee",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b32cb7fdf439935d",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1cbd3c032c87c63d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6ae653a53128f322",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-527dbf8b3f14ba49",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-657778349effc1b0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e7d027407177f17c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4d68a4406beda86e",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-deb0f7a99dad6320",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-39f249fc2626315d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-93ab28d4b658940c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ab3394941a9108d5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6431b448ba8e8e70",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-feb5de75bd83b5c6",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f5a157b02a71abe8",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-0eb361e8b7f46ecf",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9f5aee9fb06e5548",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1f18d47c6d7c6f1c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6f2f7fb74fda816e",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-bb37b6421eff95d4",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fec041c8bfbe0384",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9b7a6d5b2b2901b5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7b64caf8599e8485",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4621b5531c772313",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-31525c5939ceead1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5d1f1f117105a28f",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3d5bcb2ccef547b0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ad7f19b1cce7107b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c2bf5e290febd886",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a1e0fad118b15118",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-9e3c6a532327bcdb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0439d79c243676b4",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-83740a625406b963",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-b149dcf442ad4fd2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f6240f9970e7eb58",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-8567ba8503d7fe09",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9466dd6f1ffd7da3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6ea5a244e3f4c617",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bb11ee71a3464870",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e6033d18087f4c17",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-e2ba2ac79e60b435",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a23beb38c18be8b7",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ee6ca5c366014de2",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-dfa0a625e86b6650",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-40fc7690f12d9a4f",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b629b09ee3704f68",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b21ae9e99487840d",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6a47986516a07194",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-21aff932e4177f6e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c1b7d282a236c27f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-da724f684d7fcff3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d967c83612618094",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-61710478ff007083",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-76bd5f749edb44ba",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fa5a150f1f004375",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f941d44fb48824e4",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3e1400a69648703b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0beffa60c721c506",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c86a6f222e48aedd",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-532165a8cae1e48c",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-cdd7981496f86b1d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0cc7118b2e48b57b",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-68f515932e53c50e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7bcb948e1547da9c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8dfcdb200f10fa04",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-3c859368bd8651ff",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6de8955b2bf7c5a9",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-13dd4bae65886bde",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-36a62c0499707926",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-69f1d78558d93424",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ed320f5d01f0dbb6",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-01ca7816daec115c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-790b90cd5fda3122",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e8cd618ba4a6fda2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-09227b0160ac16ef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-699f4d5e1ca67be0",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-291dd5eb101bbb3e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e9185ed3b4494e7c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e50c757562962160",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1a21602379e9a7d1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c22a463d5bdd963d",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7cbdcdc66b6387fe",
+          "gold": true,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-cb0c68dd8f0316ef",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-dfac78d66736cfe0",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-266902c0ec1103d9",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-05d3ca51bc0f183c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6212acf157624055",
+          "gold": true,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-3d3358a775cf97c7",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5c5aacd20f533482",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d710cb673c607a16",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-915a068f8e6158fe",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5f2eb7894d1c170f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-97acbf651e59038a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a476a60f53990304",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-314b12c803554e2f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-38f85d3fc8d0b4ce",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fda932f4ee414066",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-69623d614609e8a0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f38cdcb27868e90a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9c247e6c19b14be7",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-907e3039163531f1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7fe967396e1090a4",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0486904ec2c93612",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-3651ccee786f182d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e52f7b29287e7556",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-cc4e49c67a3b74c2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4258c11a8177d326",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-82dfd14172f3dc14",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-cbbb3bf463ab1b44",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-875d82635b7c089e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4191c76d429a41fb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f17e0484155c4feb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-624cbc6e56be8d06",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bb0df05fab2eae8c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-560869e8c047434d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-65ec604db4353f4e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8e521992e02bb80d",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-bb1768a3d1a8cc5c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-88800460d840ba3d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-30e66c933e5dda31",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a18f45546c48cbf5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-465f6a7f34d92548",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1c118634855f5f83",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-360a98c738859214",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a3b584f150612c8b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4ebcce60f8be6367",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-afc1f6691b089cef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f0cd893a97adc4dd",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0e378ec706d60eee",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fd85a2b5c81e1ff8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8175a8cbb33452d8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-be4eecd7462bb3a5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-323cb99707cda477",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2d18eb1ec2e2e906",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-49b1f2f7b95e34f6",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b21bb1841f1d96af",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8b0f5de3c691be7d",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-a596ee4fc5c2e32b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-80bc00c80485d55f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7929c83adb8fdf7e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d6a940fab23e21b7",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-24d078fb0d01e9ed",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c6caff9446ee944a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-acbb7b19d61810ef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-70743f1191a136e6",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-c233395df9d0acdb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1a36d8339999fb0e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8e51266bd8f0704b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d692706462884e2e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-54db474adfe17181",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-79e8d05f72636ebc",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f50b09f1ef6150df",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bc061499a097c937",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ced274ccaa08652f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-888abe65173b4e55",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f1fcfd5fd8f4f91a",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-839bcadaa9c482d2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-109c2e22a1a3efe8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5fbc5066aed85ec5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5a7828bf3c32601c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-71c6f9820d7e69c7",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bad39a1ae2b7bd4b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-07bc60d587454e61",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d6f8bfd5e1ba7472",
+          "gold": false,
+          "predicted": false
+        }
+      ]
+    },
+    "majority_vote": {
+      "tp": 14,
+      "fp": 25,
+      "fn": 21,
+      "missing": 7,
+      "precision": 0.358974358974359,
+      "recall": 0.4,
+      "f1": 0.3783783783783784,
+      "records": [
+        {
+          "case_id": "fresh-fb7fb7bd71185ac3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b3e596366fd48bc6",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2111ee65c4c61689",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-876ef656075d8a0f",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-632fd3ce2dc2eab1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-47fb3e98db8452d8",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3a8a28158f0282cc",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-dec1d682fe514fca",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8c910bc946d2509b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5857f08ae33480c6",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2e3bb0b85ba6717e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5d5ab1a17089e4ac",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0dbac62d74cbcd8b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-78f7480f85b82271",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-13649a1627110856",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a764e7112365917f",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-7ba2b165868747ee",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b32cb7fdf439935d",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-1cbd3c032c87c63d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6ae653a53128f322",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-527dbf8b3f14ba49",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-657778349effc1b0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e7d027407177f17c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4d68a4406beda86e",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-deb0f7a99dad6320",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-39f249fc2626315d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-93ab28d4b658940c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ab3394941a9108d5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6431b448ba8e8e70",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-feb5de75bd83b5c6",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-f5a157b02a71abe8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0eb361e8b7f46ecf",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9f5aee9fb06e5548",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1f18d47c6d7c6f1c",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-6f2f7fb74fda816e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bb37b6421eff95d4",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fec041c8bfbe0384",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9b7a6d5b2b2901b5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7b64caf8599e8485",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4621b5531c772313",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-31525c5939ceead1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5d1f1f117105a28f",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3d5bcb2ccef547b0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ad7f19b1cce7107b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c2bf5e290febd886",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a1e0fad118b15118",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-9e3c6a532327bcdb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0439d79c243676b4",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-83740a625406b963",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b149dcf442ad4fd2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f6240f9970e7eb58",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-8567ba8503d7fe09",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9466dd6f1ffd7da3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6ea5a244e3f4c617",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bb11ee71a3464870",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e6033d18087f4c17",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-e2ba2ac79e60b435",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a23beb38c18be8b7",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ee6ca5c366014de2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-dfa0a625e86b6650",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-40fc7690f12d9a4f",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b629b09ee3704f68",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b21ae9e99487840d",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6a47986516a07194",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-21aff932e4177f6e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c1b7d282a236c27f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-da724f684d7fcff3",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d967c83612618094",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-61710478ff007083",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-76bd5f749edb44ba",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-fa5a150f1f004375",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f941d44fb48824e4",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3e1400a69648703b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0beffa60c721c506",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c86a6f222e48aedd",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-532165a8cae1e48c",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-cdd7981496f86b1d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0cc7118b2e48b57b",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-68f515932e53c50e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7bcb948e1547da9c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8dfcdb200f10fa04",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-3c859368bd8651ff",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-6de8955b2bf7c5a9",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-13dd4bae65886bde",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-36a62c0499707926",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-69f1d78558d93424",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ed320f5d01f0dbb6",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-01ca7816daec115c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-790b90cd5fda3122",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e8cd618ba4a6fda2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-09227b0160ac16ef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-699f4d5e1ca67be0",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-291dd5eb101bbb3e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e9185ed3b4494e7c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-e50c757562962160",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1a21602379e9a7d1",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-c22a463d5bdd963d",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7cbdcdc66b6387fe",
+          "gold": true,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-cb0c68dd8f0316ef",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-dfac78d66736cfe0",
+          "gold": true,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-266902c0ec1103d9",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-05d3ca51bc0f183c",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-6212acf157624055",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-3d3358a775cf97c7",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-5c5aacd20f533482",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-d710cb673c607a16",
+          "gold": true,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-915a068f8e6158fe",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5f2eb7894d1c170f",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-97acbf651e59038a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-a476a60f53990304",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-314b12c803554e2f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-38f85d3fc8d0b4ce",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-fda932f4ee414066",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-69623d614609e8a0",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f38cdcb27868e90a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-9c247e6c19b14be7",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-907e3039163531f1",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7fe967396e1090a4",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-0486904ec2c93612",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-3651ccee786f182d",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-e52f7b29287e7556",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-cc4e49c67a3b74c2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4258c11a8177d326",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-82dfd14172f3dc14",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-cbbb3bf463ab1b44",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-875d82635b7c089e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4191c76d429a41fb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f17e0484155c4feb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-624cbc6e56be8d06",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bb0df05fab2eae8c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-560869e8c047434d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-65ec604db4353f4e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8e521992e02bb80d",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-bb1768a3d1a8cc5c",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-88800460d840ba3d",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-30e66c933e5dda31",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-a18f45546c48cbf5",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-465f6a7f34d92548",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-1c118634855f5f83",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-360a98c738859214",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-a3b584f150612c8b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-4ebcce60f8be6367",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-afc1f6691b089cef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f0cd893a97adc4dd",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-0e378ec706d60eee",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-fd85a2b5c81e1ff8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8175a8cbb33452d8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-be4eecd7462bb3a5",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-323cb99707cda477",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-2d18eb1ec2e2e906",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-49b1f2f7b95e34f6",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-b21bb1841f1d96af",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-8b0f5de3c691be7d",
+          "gold": false,
+          "predicted": null
+        },
+        {
+          "case_id": "fresh-a596ee4fc5c2e32b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-80bc00c80485d55f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-7929c83adb8fdf7e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d6a940fab23e21b7",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-24d078fb0d01e9ed",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c6caff9446ee944a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-acbb7b19d61810ef",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-70743f1191a136e6",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-c233395df9d0acdb",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-1a36d8339999fb0e",
+          "gold": false,
+          "predicted": true
+        },
+        {
+          "case_id": "fresh-8e51266bd8f0704b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d692706462884e2e",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-54db474adfe17181",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-79e8d05f72636ebc",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f50b09f1ef6150df",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bc061499a097c937",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-ced274ccaa08652f",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-888abe65173b4e55",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-f1fcfd5fd8f4f91a",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-839bcadaa9c482d2",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-109c2e22a1a3efe8",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5fbc5066aed85ec5",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-5a7828bf3c32601c",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-71c6f9820d7e69c7",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-bad39a1ae2b7bd4b",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-07bc60d587454e61",
+          "gold": false,
+          "predicted": false
+        },
+        {
+          "case_id": "fresh-d6f8bfd5e1ba7472",
+          "gold": false,
+          "predicted": true
+        }
+      ]
+    }
+  }
+}

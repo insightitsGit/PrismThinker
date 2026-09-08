@@ -90,3 +90,12 @@ def test_pairwise_delta_emits_sorted_pair() -> None:
     pair = pairwise_delta(left, right, EngineConfig())
     assert pair.pair.left <= pair.pair.right
     assert {pair.pair.left, pair.pair.right} == {"causal", "utility"}
+
+
+def test_critical_pair_boundary_matches_lattice():
+    from prismthinker.core.contradiction import critical_pairs
+    pair = pairwise_delta(result("formal", Verdict.APPROVE),
+                          result("policy", Verdict.REJECT), EngineConfig())
+    assert critical_pairs([pair], pair.delta) == []
+    assert critical_pairs([pair], pair.delta - 0.001) == [pair]
+    assert critical_pairs([pair], pair.delta + 0.001) == []

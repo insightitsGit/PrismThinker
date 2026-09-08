@@ -168,4 +168,5 @@ def critical_pairs(
     pairs: list[PairwiseDisagreement],
     tau_base: float,
 ) -> list[PairwiseDisagreement]:
-    return [p for p in pairs if p.delta >= tau_base]
+    # Match the lattice's documented strict threshold (Delta > tau).
+    return [p for p in pairs if p.delta > tau_base]

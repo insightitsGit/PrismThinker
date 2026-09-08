@@ -1,0 +1,12 @@
+{
+  "seed": 42,
+  "dataset_version": "local-v0.1.1",
+  "dataset": "../datasets/processed/local-v0.1.1.jsonl",
+  "responses": "../datasets/processed/mock-responses-v0.1.1.json",
+  "output": "../reports/generated",
+  "split": "validation",
+  "splits": [0.6, 0.2, 0.2],
+  "consensus_confidence": 0.8,
+  "mock_samples": 3,
+  "systems": ["single_model_mock", "majority_vote_mock", "prismthinker"]
+}

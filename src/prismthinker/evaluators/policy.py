@@ -20,6 +20,7 @@ from prismthinker.core.schemas import (
 from prismthinker.evaluators.base import Evaluator
 from prismthinker.reason_codes import (
     REASON_MISSING_POLICY_RULES,
+    REASON_POLICY_INCOMPLETE,
     REASON_UNBOUND_PATH,
     REASON_UNSTRUCTURED_RULE_IGNORED,
 )
@@ -74,10 +75,12 @@ class PolicyEvaluator(Evaluator):
             premises.append(rule.id)
             premises.extend(result.cited_fact_keys)
             if result.unbound:
+                codes.append(REASON_POLICY_INCOMPLETE)
                 codes.append(REASON_UNBOUND_PATH)
                 questions.append(f"unbound path in rule {rule.id}")
                 continue
             if result.error:
+                codes.append(REASON_POLICY_INCOMPLETE)
                 questions.append(f"rule {rule.id} predicate error: {result.error}")
                 continue
 
@@ -181,6 +184,19 @@ class PolicyEvaluator(Evaluator):
                 assumptions=assumptions,
                 unresolved_questions=questions,
                 hard_veto=False,
+                reason_codes=list(dict.fromkeys(codes)),
+                backend=BackendKind.RULES,
+            )
+        # A skipped rule is unknown, not a proof that no prohibition applies.
+        # Preserve proven rejection/caution above; never approve incomplete checks.
+        if REASON_POLICY_INCOMPLETE in codes:
+            return EvaluatorResult(
+                evaluator="policy",
+                verdict=Verdict.UNDETERMINED,
+                confidence=0.0,
+                premise_ids=list(dict.fromkeys(premises)),
+                assumptions=assumptions,
+                unresolved_questions=questions,
                 reason_codes=list(dict.fromkeys(codes)),
                 backend=BackendKind.RULES,
             )

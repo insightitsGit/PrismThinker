@@ -1,0 +1,260 @@
+{
+  "study_id": "local-v0.2-L-001",
+  "timestamp": "2026-09-07T08:34:59.867274+00:00",
+  "dataset_hash": "34db1e77f6a32b77b601e280e3133c8c25a64c9cd74db146719c24b6a153213a",
+  "config_hash": "1bfa2d87fcd932ce5469cd120c8ffcf087fdea03c616b8e006d64cbd5a43c3f8",
+  "source_hash": "2752d5ba8dfd2cbc5fe582d4cb060ae0c1a56281b45e72a04fc6093dd367c8c3",
+  "engine_config": {
+    "schema_version": "1.1.0",
+    "tau_base": 0.4,
+    "qualified_tau": 0.2,
+    "u_insufficient": 0.6,
+    "uncited_penalty": 0.5,
+    "contradiction": {
+      "conclusion": 0.35,
+      "constraint": 0.25,
+      "evidence": 0.15,
+      "assumption": 0.15,
+      "premise": 0.1
+    },
+    "classifier": {
+      "numeric_empirical": 0.35,
+      "numeric_pragmatic": 0.1,
+      "graph_empirical": 0.25,
+      "graph_pragmatic": 0.15,
+      "objective_pragmatic": 0.4,
+      "policy_rules": 0.45,
+      "policy_domain": 0.25,
+      "lexeme_empirical": 0.2,
+      "lexeme_policy": 0.2,
+      "lexeme_pragmatic": 0.2,
+      "open_multi_present": 0.3,
+      "open_long_query": 0.2,
+      "score_floor": 0.35,
+      "score_margin": 0.1,
+      "long_query_chars": 240
+    },
+    "selector": {
+      "fill_order": [
+        "formal",
+        "policy",
+        "empirical",
+        "causal",
+        "utility"
+      ],
+      "regime_required": {
+        "closed_formal": [
+          "formal"
+        ],
+        "empirical": [
+          "empirical",
+          "causal"
+        ],
+        "policy_normative": [
+          "policy",
+          "formal"
+        ],
+        "pragmatic_systems": [
+          "utility",
+          "causal",
+          "empirical"
+        ],
+        "open_dialectic": [
+          "formal",
+          "policy",
+          "empirical",
+          "causal",
+          "utility"
+        ]
+      },
+      "regime_optional": {
+        "closed_formal": [
+          "empirical"
+        ],
+        "empirical": [
+          "formal"
+        ],
+        "policy_normative": [
+          "utility",
+          "empirical"
+        ],
+        "pragmatic_systems": [
+          "policy",
+          "formal"
+        ],
+        "open_dialectic": []
+      },
+      "domain_overlays": {
+        "legal": [
+          "policy"
+        ],
+        "security": [
+          "policy"
+        ],
+        "privacy": [
+          "policy"
+        ],
+        "healthcare": [
+          "policy"
+        ],
+        "finance": [
+          "policy"
+        ],
+        "sre": [
+          "utility",
+          "empirical"
+        ],
+        "infra": [
+          "utility",
+          "empirical"
+        ],
+        "performance": [
+          "utility",
+          "empirical"
+        ],
+        "science": [
+          "empirical",
+          "causal"
+        ],
+        "telemetry": [
+          "empirical",
+          "causal"
+        ]
+      }
+    },
+    "llm": {
+      "enabled": false,
+      "model_id": "",
+      "temperature": 0.0,
+      "seed": 0,
+      "cache": true
+    },
+    "min_heads": 3,
+    "stale_hours": 168.0,
+    "head_timeout_ms": 250,
+    "pool_budget_ms": 400,
+    "counterfactual_timeout_ms": 200,
+    "max_probes": 12,
+    "max_probe_params": 4,
+    "n_unresolved_cap": 10,
+    "isolate_heads": true,
+    "dynamic_tau": true,
+    "stop_on_first_resolving": false
+  },
+  "engine_config_hash": "24c90aaf9c5540de539a98c99f660540d0d586fe42e01664c452a8c1ad72160a",
+  "prismthinker_version": "1.1.0",
+  "git_commit": "46fc533ac5199ac3a27077b1f76e3a520df334cc",
+  "runtime": {
+    "version": "0.33.3"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.14",
+  "models": {
+    "qwen3:4b": {
+      "name": "qwen3:4b",
+      "model": "qwen3:4b",
+      "modified_at": "2026-09-07T01:25:57.534326-07:00",
+      "size": 2497293931,
+      "digest": "359d7dd4bcdab3d86b87d73ac27966f4dbb9f5efdfcc75d34a8764a09474fae7",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "4.0B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 2560
+      },
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking"
+      ]
+    },
+    "llama3.2:3b": {
+      "name": "llama3.2:3b",
+      "model": "llama3.2:3b",
+      "modified_at": "2026-09-07T01:25:15.748602-07:00",
+      "size": 2019393189,
+      "digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "llama",
+        "families": [
+          "llama"
+        ],
+        "parameter_size": "3.2B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 131072,
+        "embedding_length": 3072
+      },
+      "capabilities": [
+        "completion",
+        "tools"
+      ]
+    },
+    "gemma3:4b": {
+      "name": "gemma3:4b",
+      "model": "gemma3:4b",
+      "modified_at": "2026-09-07T01:26:52.9150345-07:00",
+      "size": 3338801804,
+      "digest": "a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "gemma3",
+        "families": [
+          "gemma3"
+        ],
+        "parameter_size": "4.3B",
+        "quantization_level": "Q4_K_M"
+      },
+      "capabilities": [
+        "completion"
+      ]
+    }
+  },
+  "config": {
+    "study_id": "local-v0.2-L-001",
+    "dataset": "../datasets/processed/adversarial-v0.2-L.jsonl",
+    "output": "../reports/local-v0.2-L-001",
+    "seed": 20260907,
+    "models": [
+      "qwen3:4b",
+      "llama3.2:3b",
+      "gemma3:4b"
+    ],
+    "primary_model": "qwen3:4b",
+    "judge_model": "qwen3:4b",
+    "self_consistency_samples": 3,
+    "base_url": "http://127.0.0.1:11434",
+    "temperature": 0.6,
+    "judge_temperature": 0.0,
+    "num_predict": 256,
+    "num_ctx": 8192,
+    "timeout_seconds": 120,
+    "coverage_thresholds": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      0.9,
+      0.95,
+      1.0
+    ],
+    "bootstrap_samples": 10000,
+    "bootstrap_confidence": 0.95
+  },
+  "prompt_hash": "5efd7e627edc2d13c4c93279e030a7475f9f23c9c825bff89447e28a9a262599",
+  "case_count": 180,
+  "group_count": 30,
+  "benchmark_type": "newly authored synthetic adversarial, frozen before evaluation; not externally reviewed",
+  "heldout_definition": "No system output used for generation, selection or thresholds. All 180 cases are evaluation-only; no test-driven tuning.",
+  "retry_policy": "No automatic retry. A started call without a completed record is a failed/unknown call on resume.",
+  "shared_calls": "Single and panel sample zero are reused for self-consistency and majority/judge. Reported method costs include dependencies; physical calls are counted separately.",
+  "representation": "Identical prose and typed rule inputs to all systems. Rule translation is authored; upstream extraction cost/generalization is not measured."
+}

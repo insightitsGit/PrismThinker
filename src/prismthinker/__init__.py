@@ -2,10 +2,18 @@ from prismthinker.config import EngineConfig, LLMConfig
 from prismthinker.core.engine import PrismThinker
 from prismthinker.core.schemas import (
     ActionKind,
+    AlignedClaim,
+    AlignedDelta,
+    ConflictSignals,
+    EligibilityAssessment,
+    EligibilityCheck,
     CandidateAction,
     DecisionGraph,
     DeonticModality,
     EvidenceItem,
+    FactSpec,
+    FactType,
+    FactValue,
     Hypothesis,
     PolicyRule,
     PresentationContext,
@@ -15,16 +23,24 @@ from prismthinker.core.schemas import (
     Verdict,
 )
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 __all__ = [
     "__version__",
     "ActionKind",
+    "AlignedClaim",
+    "AlignedDelta",
+    "ConflictSignals",
+    "EligibilityAssessment",
+    "EligibilityCheck",
     "CandidateAction",
     "DecisionGraph",
     "DeonticModality",
     "EngineConfig",
     "EvidenceItem",
+    "FactSpec",
+    "FactType",
+    "FactValue",
     "Hypothesis",
     "LLMConfig",
     "PolicyRule",

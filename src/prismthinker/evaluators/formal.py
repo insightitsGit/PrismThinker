@@ -20,7 +20,7 @@ from prismthinker.core.schemas import (
     Verdict,
 )
 from prismthinker.evaluators.base import Evaluator
-from prismthinker.reason_codes import REASON_DIVISION_BY_ZERO, REASON_UNBOUND_PATH
+from prismthinker.reason_codes import REASON_DIVISION_BY_ZERO, REASON_UNBOUND_PATH, REASON_CONSTRAINT_INCOMPLETE
 
 CAPABILITY = EvaluatorCapability(
     name="formal",
@@ -140,7 +140,15 @@ class FormalEvaluator(Evaluator):
                     )
                 )
                 continue
-            satisfied = bool(result.value) and not result.error
+            if result.error:
+                unbound = True
+                codes.append(REASON_CONSTRAINT_INCOMPLETE)
+                questions.append(f"constraint {constraint.id} predicate error: {result.error}")
+                applied.append(ConstraintApplication(
+                    constraint_id=constraint.id, status=ConstraintStatus.UNCHECKED,
+                    cited_fact_keys=list(result.cited_fact_keys)))
+                continue
+            satisfied = bool(result.value)
             assumptions.append(
                 AssumptionAtom(
                     id=f"formal-a-{constraint.id}",

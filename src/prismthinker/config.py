@@ -6,7 +6,7 @@ from typing import Dict, List, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 
 
 class ContradictionWeights(BaseModel):
@@ -103,7 +103,7 @@ class LLMConfig(BaseModel):
 class EngineConfig(BaseModel):
     """v1.1 engineering priors. Not claimed to be empirically calibrated."""
 
-    schema_version: Literal["1.1.0"] = SCHEMA_VERSION
+    schema_version: Literal["1.1.0", "1.2.0"] = SCHEMA_VERSION
     tau_base: float = 0.40
     qualified_tau: float = 0.20
     u_insufficient: float = 0.60
