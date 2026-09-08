@@ -3,6 +3,11 @@
 All notable changes to this package are recorded here. The frozen v1.1 contract
 is historical; the working implementation now emits schema `1.2.0`.
 
+## Unreleased
+
+- Public contributor path: Discussions, `CONTRIBUTING.md`, `SECURITY.md`,
+  Dependabot, and `main` locked to pull requests only (no direct push).
+
 ## 1.2.0 — 2026-09-08
 
 Beta SDK release for supervised pilots and shadow evaluation. This release does
