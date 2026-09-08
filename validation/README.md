@@ -17,7 +17,7 @@ thresholds. v0.1 establishes engineering correctness, **not scientific superiori
 From the repository root, with Python 3.11+:
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,validation]"
 python -m validation.datasets.build_local
 python -m pytest
 python -m validation.experiments.baseline_comparison --config validation/config/experiment.json
